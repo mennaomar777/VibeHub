@@ -12,10 +12,10 @@ The project focuses on clean UI, proper authentication flow, protected routes, a
 
 - User Registration & Login
 - JWT-based authentication
-- Protected routes (Home/Feed & Profile accessible only when logged in)
+- Protected routes (Feed & Profile accessible only when logged in)
 - Logout functionality
 
-### 🏠 Home / Feed
+### 🏠 Feed
 
 - Create posts with text and optional images
 - View posts in a clean, responsive feed
@@ -68,7 +68,9 @@ The project focuses on clean UI, proper authentication flow, protected routes, a
 
 ---
 
-## 📂 Project Structure (Simplified)
+## 📂 Project Structure
+
+```txt
 
 src/
 │── app/
@@ -92,7 +94,7 @@ src/
 │ │── layout.tsx
 │
 │── interfaces/
-│ ├── podtData.ts
+│ ├── postData.ts
 │
 │── lib/
 │ ├── store.ts
@@ -107,12 +109,14 @@ src/
 public/
 │── images/
 
+```
+
 ---
 
 ## 🔒 Protected Routes Logic
 
 - Users must be authenticated to access:
-  - Home / Feed
+  - Feed
   - Profile
   - Settings
 - Authentication is handled using JWT stored securely.
