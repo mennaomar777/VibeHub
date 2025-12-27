@@ -1,95 +1,166 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useFormik } from "formik";
+import React from "react";
+import * as Yup from "yup";
+import { useDispatch, useSelector } from "react-redux";
+import { handleLogin } from "@/lib/authSlice";
+import { dispatchType, stateType } from "@/lib/store";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { getUserData } from "@/lib/profileSlice";
 
-export default function Home() {
+export default function Login() {
+  const dispatch = useDispatch<dispatchType>();
+  const { isLoading } = useSelector((state: stateType) => state.auth);
+  const router = useRouter();
+
+  const validationSchema = Yup.object().shape({
+    email: Yup.string()
+      .email("Invalid email format")
+      .required("Email is required"),
+    password: Yup.string().required("Password is required"),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema,
+    onSubmit: (values) => {
+      dispatch(handleLogin(values))
+        .unwrap()
+        .then(() => {
+          toast.success("Welcome back!");
+          router.push("/feed");
+          dispatch(getUserData());
+        })
+        .catch(() => {
+          toast.error("Incorrect email or password");
+        });
+    },
+  });
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <Container
+      maxWidth="sm"
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Paper
+        elevation={8}
+        sx={{
+          p: { xs: 4, sm: 6 },
+          width: "100%",
+          maxWidth: 480,
+          borderRadius: 4,
+          boxShadow: "0 8px 32px rgb(0 0 0 / 0.1)",
+          bgcolor: "background.paper",
+        }}
+      >
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          align="center"
+          sx={{ mb: 4, color: "primary.main" }}
+        >
+          Welcome Back
+        </Typography>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          align="center"
+          sx={{ mb: 4 }}
+        >
+          Log in to your account
+        </Typography>
+
+        <Box component="form" onSubmit={formik.handleSubmit} noValidate>
+          <TextField
+            fullWidth
+            id="email"
+            name="email"
+            label="Email"
+            type="email"
+            variant="outlined"
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.email && Boolean(formik.errors.email)}
+            helperText={formik.touched.email && formik.errors.email}
+            sx={{
+              mb: 3,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                bgcolor: "#f8fafc",
+              },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            id="password"
+            name="password"
+            label="Password"
+            type="password"
+            variant="outlined"
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.password && Boolean(formik.errors.password)}
+            helperText={formik.touched.password && formik.errors.password}
+            sx={{
+              mb: 4,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                bgcolor: "#f8fafc",
+              },
+            }}
+          />
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={isLoading}
+            sx={{
+              py: 1.8,
+              fontSize: "1.1rem",
+              fontWeight: 600,
+              borderRadius: 3,
+              textTransform: "none",
+              boxShadow: 3,
+              "&:hover": {
+                boxShadow: 6,
+                bgcolor: "primary.dark",
+              },
+              "&:disabled": {
+                bgcolor: "primary.light",
+              },
+            }}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            {isLoading ? (
+              <CircularProgress size={28} thickness={5} color="inherit" />
+            ) : (
+              "Log In"
+            )}
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
   );
 }

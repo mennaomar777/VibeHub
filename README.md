@@ -1,36 +1,146 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VibeHub 🌐✨
 
-## Getting Started
+VibeHub is a modern social media web application that allows users to share posts, interact with others, and manage their personal profiles in a smooth and responsive experience.
 
-First, run the development server:
+The project focuses on clean UI, proper authentication flow, protected routes, and scalable state management using Redux Toolkit.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🔐 Authentication
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- User Registration & Login
+- JWT-based authentication
+- Protected routes (Home/Feed & Profile accessible only when logged in)
+- Logout functionality
 
-## Learn More
+### 🏠 Home / Feed
 
-To learn more about Next.js, take a look at the following resources:
+- Create posts with text and optional images
+- View posts in a clean, responsive feed
+- Edit and delete posts (owner only)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 💬 Comments
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Add comments to posts
+- Edit and delete comments (owner only)
 
-## Deploy on Vercel
+### 👤 Profile
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Personal profile page
+- View user's own posts
+- Upload and update profile photo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### ⚙️ Settings
+
+- Change password securely
+
+### 🧭 Navigation
+
+- Responsive Navbar (mobile & desktop)
+- User avatar and username displayed
+- Conditional rendering based on authentication state
+
+### 🧠 State Management
+
+- Redux Toolkit for global state management
+- Separate slices for authentication, profile, and posts
+
+### 🔔 UX Enhancements
+
+- Toast notifications for success & error messages
+- Loading states
+- Custom Error & Not Found pages
+- Fully responsive design
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** Next.js (App Router)
+- **UI Library:** Material UI (MUI)
+- **State Management:** Redux Toolkit
+- **HTTP Client:** Axios
+- **Authentication:** JWT
+- **Styling:** Responsive Design (Mobile & Desktop)
+- **Notifications:** Toast messages
+
+---
+
+## 📂 Project Structure (Simplified)
+
+src/
+│── app/
+│ │── \_components/
+│ │ ├── CommentItem/
+│ │ ├── CreatePost/
+│ │ ├── footer/
+│ │ ├── navbar/
+│ │ ├── Post/
+│ │ └── ProfilePhoto/
+│ │
+│ │── (pages)/
+│ │ ├── feed/
+│ │ ├── profile/
+│ │ ├── register/
+│ │ ├── settings/
+│ │ └── singlePost/
+│ │
+│ │── error.tsx
+│ │── loading.tsx
+│ │── layout.tsx
+│
+│── interfaces/
+│ ├── podtData.ts
+│
+│── lib/
+│ ├── store.ts
+│ ├── authSlice.ts
+│ ├── profileSlice.ts
+│ ├── postsSlice.ts
+│ └── commentsSlice.ts
+│
+│── styles/
+│ └── globals.css
+│
+public/
+│── images/
+
+---
+
+## 🔒 Protected Routes Logic
+
+- Users must be authenticated to access:
+  - Home / Feed
+  - Profile
+  - Settings
+- Authentication is handled using JWT stored securely.
+- UI updates dynamically based on login state.
+
+---
+
+## 📱 Responsive Design
+
+- Fully responsive layout
+- Optimized for:
+  - Mobile
+  - Tablet
+  - Desktop
+- Adaptive Navbar with mobile menu support
+
+---
+
+## 👩‍💻 Author
+
+**Menna Omar**  
+Frontend Developer  
+React | Next.js | Redux Toolkit
+
+---
+
+## ⭐ Acknowledgments
+
+Thanks to all the open-source tools and libraries that made this project possible.
+
+If you like the project, feel free to ⭐ the repository!
