@@ -18,13 +18,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { dispatchType, stateType } from "@/lib/store";
 import ProfilePhoto from "@/app/_components/ProfilePhoto/ProfilePhoto";
 import { getUserData } from "@/lib/profileSlice";
+import { useParams } from "next/navigation";
 
-export default function ProfilePage({ params }: { params: { id: string } }) {
+export default function ProfilePage() {
+  const params = useParams();
+  const id = params.id as string;
+
   const [tab, setTab] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState<string | null>(null);
 
-  const { posts, loading, error } = useUserInfo(params.id);
+  const { posts, loading, error } = useUserInfo(id);
   const { userData } = useSelector((state: stateType) => state.profile);
   const dispatch = useDispatch<dispatchType>();
 
