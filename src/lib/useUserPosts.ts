@@ -28,5 +28,5 @@ export default function useUserInfo(id: string) {
     fetchPosts();
   }, [id]);
 
-  return { posts, loading, error };
+  return { posts, loading, error, refetch: fetchPosts };
 }

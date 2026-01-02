@@ -37,10 +37,12 @@ export default function Post({
   postdata,
   currentUserId,
   showAllComments = false,
+  onPostChange,
 }: {
   postdata: PostData;
   showAllComments?: boolean;
   currentUserId: string | null;
+  onPostChange?: () => void;
 }) {
   const router = useRouter();
   const dispatch = useDispatch<dispatchType>();
@@ -82,8 +84,16 @@ export default function Post({
 
   function handleDelete(id: string) {
     dispatch(deletePost(id))
-      .then(() => toast.success("Post deleted successfully!"))
-      .catch(() => toast.error("Post doesn't deleted!"));
+      .unwrap()
+      .then(() => {
+        toast.success("Post deleted successfully!");
+        if (onPostChange) {
+          onPostChange();
+        }
+      })
+      .catch(() => {
+        toast.error("Post doesn't deleted!");
+      });
   }
 
   function handleUpdate() {
@@ -92,14 +102,21 @@ export default function Post({
     if (image) formData.append("image", image);
 
     dispatch(updatePost({ id: postdata._id, formData }))
+      .unwrap()
       .then(() => {
         toast.success("Post updated successfully!");
         setOpenEditModal(false);
         setImage(null);
         setPreview(null);
         dispatch(getAllPosts());
+
+        if (onPostChange) {
+          onPostChange();
+        }
       })
-      .catch(() => toast.error("Post doesn't updated!"));
+      .catch(() => {
+        toast.error("Post doesn't updated!");
+      });
   }
 
   const handleCreateComment = () => {

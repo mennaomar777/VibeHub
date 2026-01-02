@@ -28,7 +28,7 @@ export default function ProfilePage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState<string | null>(null);
 
-  const { posts, loading, error } = useUserInfo(id);
+  const { posts, loading, error, refetch } = useUserInfo(id);
   const { userData } = useSelector((state: stateType) => state.profile);
   const dispatch = useDispatch<dispatchType>();
 
@@ -149,6 +149,7 @@ export default function ProfilePage() {
                       postdata={post}
                       currentUserId={currentUserId}
                       showAllComments={false}
+                      onPostChange={refetch}
                     />
                   </Box>
                 ))
