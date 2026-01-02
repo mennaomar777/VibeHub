@@ -150,7 +150,7 @@ export default function ProfilePage() {
                       currentUserId={currentUserId}
                       showAllComments={false}
                       onPostChange={refetch}
-                      currentUserPhoto={userData.photo || "/default-avatar.png"}
+                      currentUserPhoto={userData.photo || ""}
                     />
                   </Box>
                 ))

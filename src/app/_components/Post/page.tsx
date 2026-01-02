@@ -26,19 +26,20 @@ import { PostData, Comment } from "../../interfaces/postData";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import { deletePost, updatePost } from "@/lib/postSlice";
+import { deletePost, getSinglePost, updatePost } from "@/lib/postSlice";
 import { getAllPosts } from "@/lib/postSlice";
 import { dispatchType } from "@/lib/store";
 import toast from "react-hot-toast";
 import CommentItem from "../CommentItem/CommentItem";
 import { createComment } from "@/lib/commentsSlice";
+import PersonIcon from "@mui/icons-material/Person";
 
 export default function Post({
   postdata,
   currentUserId,
   showAllComments = false,
   onPostChange,
-  currentUserPhoto,
+  currentUserPhoto = "",
 }: {
   postdata: PostData;
   showAllComments?: boolean;
@@ -48,10 +49,11 @@ export default function Post({
 }) {
   const router = useRouter();
   const dispatch = useDispatch<dispatchType>();
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-  const [commentText, setCommentText] = useState("");
 
+  const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<Comment[]>(postdata.comments || []);
 
   const postUserId =
@@ -76,12 +78,18 @@ export default function Post({
 
   const handleDeleteFromUI = (id: string) => {
     setComments((prev) => prev.filter((c) => c._id !== id));
+    if (showAllComments) {
+      dispatch(getSinglePost(postdata._id));
+    }
   };
 
   const handleUpdateFromUI = (id: string, content: string) => {
     setComments((prev) =>
       prev.map((c) => (c._id === id ? { ...c, content } : c))
     );
+    if (showAllComments) {
+      dispatch(getSinglePost(postdata._id));
+    }
   };
 
   function handleDelete(id: string) {
@@ -89,9 +97,7 @@ export default function Post({
       .unwrap()
       .then(() => {
         toast.success("Post deleted successfully!");
-        if (onPostChange) {
-          onPostChange();
-        }
+        if (onPostChange) onPostChange();
       })
       .catch(() => {
         toast.error("Post doesn't deleted!");
@@ -111,10 +117,7 @@ export default function Post({
         setImage(null);
         setPreview(null);
         dispatch(getAllPosts());
-
-        if (onPostChange) {
-          onPostChange();
-        }
+        if (onPostChange) onPostChange();
       })
       .catch(() => {
         toast.error("Post doesn't updated!");
@@ -138,7 +141,7 @@ export default function Post({
               ...comment,
               commentCreator: {
                 ...comment.commentCreator,
-                photo: currentUserPhoto || "/default-avatar.png",
+                photo: currentUserPhoto || "",
               },
             };
           }
@@ -155,9 +158,7 @@ export default function Post({
   };
 
   const userPhoto =
-    typeof postdata.user === "string"
-      ? "/default-avatar.png"
-      : postdata.user?.photo;
+    typeof postdata.user === "string" ? "" : postdata.user?.photo;
 
   const displayedComments = showAllComments ? comments : comments.slice(0, 1);
 
@@ -175,17 +176,21 @@ export default function Post({
       <CardHeader
         avatar={
           <Avatar sx={{ cursor: "pointer", width: 44, height: 44 }}>
-            <Image
-              src={userPhoto || "/default-avatar.png"}
-              alt={
-                typeof postdata.user === "string"
-                  ? "User"
-                  : postdata.user?.name || "User"
-              }
-              width={44}
-              height={44}
-              style={{ objectFit: "cover" }}
-            />
+            {userPhoto ? (
+              <Image
+                src={userPhoto}
+                alt={
+                  typeof postdata.user === "string"
+                    ? "User"
+                    : postdata.user?.name || "User"
+                }
+                width={44}
+                height={44}
+                style={{ objectFit: "cover" }}
+              />
+            ) : (
+              <PersonIcon sx={{ fontSize: 28 }} />
+            )}
           </Avatar>
         }
         action={
@@ -239,7 +244,7 @@ export default function Post({
         </Typography>
       </CardContent>
 
-      {postdata?.image && (
+      {postdata?.image && postdata.image !== "undefined" ? (
         <Box
           sx={{
             position: "relative",
@@ -253,9 +258,12 @@ export default function Post({
             alt="Post image"
             fill
             style={{ objectFit: "cover" }}
+            onError={(e) => {
+              e.currentTarget.src = "/placeholder.png";
+            }}
           />
         </Box>
-      )}
+      ) : null}
 
       <CardActions disableSpacing sx={{ px: 2, py: 1 }}>
         <IconButton aria-label="like">
@@ -299,6 +307,8 @@ export default function Post({
               currentUserId={currentUserId}
               onDelete={handleDeleteFromUI}
               onUpdate={handleUpdateFromUI}
+              currentUserPhoto={currentUserPhoto}
+              postUserId={postUserId}
             />
           ))}
 

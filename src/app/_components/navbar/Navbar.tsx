@@ -217,7 +217,7 @@ function Navbar() {
                   >
                     <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                       <Avatar
-                        src={userData?.photo || "/default-avatar.png"}
+                        src={userData?.photo || ""}
                         alt={userData?.name || "User"}
                         sx={{
                           width: 40,

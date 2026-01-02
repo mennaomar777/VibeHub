@@ -52,7 +52,7 @@ export default function Home() {
                 postdata={post}
                 currentUserId={currentUserId}
                 showAllComments={false}
-                currentUserPhoto={userData.photo || "/default-avatar.png"}
+                currentUserPhoto={userData.photo || ""}
               />
             </Box>
           ))

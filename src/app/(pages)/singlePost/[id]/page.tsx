@@ -20,6 +20,11 @@ export default function SinglePost({
 
   const { id } = React.use(params);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { userData } = useSelector((state: stateType) => state.profile);
+
+  if (userData._id !== "") {
+    console.log(userData.photo);
+  }
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,12 +56,15 @@ export default function SinglePost({
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
-      <Post
-        key={singlePost._id}
-        postdata={singlePost}
-        currentUserId={currentUserId}
-        showAllComments={true}
-      />
+      {userData._id !== "" && (
+        <Post
+          key={singlePost._id}
+          postdata={singlePost}
+          currentUserId={currentUserId}
+          showAllComments={true}
+          currentUserPhoto={userData.photo !== "" ? userData.photo : ""}
+        />
+      )}
     </Container>
   );
 }
