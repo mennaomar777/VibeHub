@@ -7,7 +7,7 @@ export const getAllPosts = createAsyncThunk("post/allPost", async () => {
     typeof window !== "undefined" ? localStorage.getItem("token") : "";
   try {
     const res = await axios.get(
-      `https://linked-posts.routemisr.com/posts?limit=50`,
+      `https://linked-posts.routemisr.com/posts?limit=50&page=77`,
       {
         headers: {
           token,
