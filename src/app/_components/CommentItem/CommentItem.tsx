@@ -65,7 +65,7 @@ export default function CommentItem({
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-
+  console.log(comment.commentCreator.photo);
   return (
     <Box
       sx={{
@@ -88,7 +88,13 @@ export default function CommentItem({
         }}
       >
         <Image
-          src={comment?.commentCreator.photo || "/default-avatar.png"}
+          src={
+            comment?.commentCreator?.photo &&
+            comment.commentCreator.photo !== "undefined" &&
+            comment.commentCreator.photo.trim() !== ""
+              ? comment.commentCreator.photo
+              : "/default-avatar.png"
+          }
           alt={comment?.commentCreator.name}
           fill
           style={{ objectFit: "cover" }}

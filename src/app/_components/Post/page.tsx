@@ -38,11 +38,13 @@ export default function Post({
   currentUserId,
   showAllComments = false,
   onPostChange,
+  currentUserPhoto,
 }: {
   postdata: PostData;
   showAllComments?: boolean;
   currentUserId: string | null;
   onPostChange?: () => void;
+  currentUserPhoto?: string;
 }) {
   const router = useRouter();
   const dispatch = useDispatch<dispatchType>();
@@ -129,8 +131,21 @@ export default function Post({
       })
     )
       .unwrap()
-      .then((newComments) => {
-        setComments(newComments);
+      .then((newComments: Comment[]) => {
+        const updatedComments = newComments.map((comment: Comment) => {
+          if (comment.commentCreator._id === currentUserId) {
+            return {
+              ...comment,
+              commentCreator: {
+                ...comment.commentCreator,
+                photo: currentUserPhoto || "/default-avatar.png",
+              },
+            };
+          }
+          return comment;
+        });
+
+        setComments(updatedComments);
         setCommentText("");
         toast.success("Comment created successfully!");
       })

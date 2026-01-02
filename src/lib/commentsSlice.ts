@@ -1,4 +1,3 @@
-import { JwtPayload } from "./../../node_modules/jwt-decode/build/cjs/index.d";
 import { Comment } from "@/app/interfaces/postData";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";

@@ -15,6 +15,7 @@ export default function Home() {
   const dispatch = useDispatch<dispatchType>();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const router = useRouter();
+  const { userData } = useSelector((state: stateType) => state.profile);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,6 +52,7 @@ export default function Home() {
                 postdata={post}
                 currentUserId={currentUserId}
                 showAllComments={false}
+                currentUserPhoto={userData.photo || "/default-avatar.png"}
               />
             </Box>
           ))
