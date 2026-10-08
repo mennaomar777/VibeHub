@@ -67,7 +67,12 @@ export default function CommentItem({
     : null;
 
   function handleDeleteComment() {
-    dispatch(deleteComment(comment._id))
+    dispatch(
+      deleteComment({
+        id: comment._id,
+        post: comment.post,
+      })
+    )
       .unwrap()
       .then(() => {
         onDelete(comment._id);
@@ -80,7 +85,13 @@ export default function CommentItem({
   }
 
   function handleUpdateComment() {
-    dispatch(updateComment({ id: comment._id, content }))
+    dispatch(
+      updateComment({
+        id: comment._id,
+        post: comment.post,
+        content,
+      })
+    )
       .unwrap()
       .then(() => {
         onUpdate(comment._id, content);

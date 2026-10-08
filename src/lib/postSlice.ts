@@ -7,14 +7,19 @@ export const getAllPosts = createAsyncThunk("post/allPost", async () => {
     typeof window !== "undefined" ? localStorage.getItem("token") : "";
   try {
     const res = await axios.get(
-      `https://linked-posts.routemisr.com/posts?limit=50&page=77`,
+      `https://route-posts.routemisr.com/posts`,
       {
         headers: {
-          token,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
-    return res.data.posts;
+      const posts = res.data.data.posts;
+      return posts.map((post: PostData) => ({
+        ...post,
+        // The new feed response includes only the top comment on each post.
+        comments: post.topComment ? [post.topComment] : [],
+      }));
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Something went wrong");
   }
@@ -27,14 +32,18 @@ export const getSinglePost = createAsyncThunk(
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
     try {
       const res = await axios.get(
-        `https://linked-posts.routemisr.com/posts/${id}`,
+        `https://route-posts.routemisr.com/posts/${id}`,
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      return res.data.post;
+      const post = res.data.data.post as PostData;
+      return {
+        ...post,
+        comments: post.topComment ? [post.topComment] : [],
+      };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Something went wrong");
     }
@@ -48,14 +57,14 @@ export const deletePost = createAsyncThunk(
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
     try {
       const res = await axios.delete(
-        `https://linked-posts.routemisr.com/posts/${id}`,
+        `https://route-posts.routemisr.com/posts/${id}`,
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      return res.data;
+      return res.data.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Something went wrong");
     }
@@ -69,16 +78,16 @@ export const updatePost = createAsyncThunk(
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
     try {
       const res = await axios.put(
-        `https://linked-posts.routemisr.com/posts/${id}`,
+        `https://route-posts.routemisr.com/posts/${id}`,
         formData,
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      return res.data;
+      return res.data.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Something went wrong");
     }
@@ -108,7 +117,7 @@ const postSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(getAllPosts.fulfilled, (state, action: any) => {
       state.isLoading = false;
-      state.allPost = action.payload.reverse();
+      state.allPost = action.payload;
     });
     builder.addCase(getAllPosts.rejected, (state, action) => {
       state.isLoading = false;

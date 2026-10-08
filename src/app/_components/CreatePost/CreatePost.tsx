@@ -46,9 +46,9 @@ export default function CreatePost() {
     }
 
     axios
-      .post(`https://linked-posts.routemisr.com/posts`, formData, {
+      .post(`https://route-posts.routemisr.com/posts`, formData, {
         headers: {
-          token: localStorage.getItem("token"),
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
         },
       })
       .then(() => {

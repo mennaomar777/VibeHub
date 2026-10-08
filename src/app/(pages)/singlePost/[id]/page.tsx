@@ -2,6 +2,10 @@
 import Post from "@/app/_components/Post/page";
 import Loading from "@/app/loading";
 import { getSinglePost } from "@/lib/postSlice";
+import {
+  getAllComments,
+  setCurrentCommentsPostId,
+} from "@/lib/commentsSlice";
 import { dispatchType, stateType } from "@/lib/store";
 import { Container, Typography } from "@mui/material";
 import { jwtDecode } from "jwt-decode";
@@ -17,6 +21,7 @@ export default function SinglePost({
   const { singlePost, isLoading } = useSelector(
     (state: stateType) => state.post
   );
+  const { allComments } = useSelector((state: stateType) => state.comments);
 
   const { id } = React.use(params);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -38,6 +43,8 @@ export default function SinglePost({
 
   useEffect(() => {
     dispatch(getSinglePost(id));
+    dispatch(setCurrentCommentsPostId(id));
+    dispatch(getAllComments(id));
   }, [dispatch, id]);
 
   if (isLoading) {
@@ -56,15 +63,16 @@ export default function SinglePost({
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
-      {userData._id !== "" && (
-        <Post
-          key={singlePost._id}
-          postdata={singlePost}
-          currentUserId={currentUserId}
-          showAllComments={true}
-          currentUserPhoto={userData.photo !== "" ? userData.photo : ""}
-        />
-      )}
+      <Post
+        key={singlePost._id}
+        postdata={{
+          ...singlePost,
+          comments: allComments || singlePost.comments || [],
+        }}
+        currentUserId={currentUserId}
+        showAllComments={true}
+        currentUserPhoto={userData?.photo || ""}
+      />
     </Container>
   );
 }

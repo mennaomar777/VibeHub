@@ -17,6 +17,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { useDispatch, useSelector } from "react-redux";
 import { dispatchType, stateType } from "@/lib/store";
@@ -33,10 +34,14 @@ function Navbar() {
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
     null
   );
+  const [token, setToken] = React.useState<string | null>(null);
+  const pathname = usePathname();
 
   const { userData } = useSelector((state: stateType) => state.profile);
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  React.useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, [pathname]);
 
   const isLoggedIn = !!token;
 
@@ -77,6 +82,7 @@ function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    setToken(null);
     dispatch(clearData());
     toast.success("Logged out successfully!");
     router.push("/");

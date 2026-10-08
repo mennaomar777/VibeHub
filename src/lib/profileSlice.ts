@@ -9,11 +9,11 @@ export const uploadProfilePhoto = createAsyncThunk(
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
     try {
       const res = await axios.put(
-        "https://linked-posts.routemisr.com/users/upload-photo",
+        "https://route-posts.routemisr.com/users/upload-photo",
         formdata,
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -29,14 +29,17 @@ export const getUserData = createAsyncThunk("profile/userData", async () => {
     typeof window !== "undefined" ? localStorage.getItem("token") : "";
   try {
     const res = await axios.get(
-      "https://linked-posts.routemisr.com/users/profile-data",
+      "https://route-posts.routemisr.com/users/profile-data",
       {
         headers: {
-          token,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
-    return res.data;
+    return {
+      message: res.data.message,
+      user: res.data.data?.user ?? res.data.user ?? res.data.data,
+    };
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Something went wrong");
   }
@@ -49,11 +52,11 @@ export const changePassword = createAsyncThunk(
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
     try {
       const res = await axios.patch(
-        "https://linked-posts.routemisr.com/users/change-password",
+        "https://route-posts.routemisr.com/users/change-password",
         data,
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -111,7 +114,7 @@ const profileSlice = createSlice({
       state.isError = false;
       state.error = "";
       state.message = action.payload.message;
-      state.userData = action.payload.user;
+      state.userData = action.payload.user ?? state.userData;
     });
     builder.addCase(getUserData.rejected, (state, action) => {
       state.isLoading = false;
@@ -127,9 +130,10 @@ const profileSlice = createSlice({
       state.isError = false;
       state.error = "";
       state.message = action.payload.message;
-      if (action.payload.token) {
+      const token = action.payload.data?.token;
+      if (token) {
         if (typeof window !== "undefined") {
-          localStorage.setItem("token", action.payload.token);
+          localStorage.setItem("token", token);
         }
       }
     });

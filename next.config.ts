@@ -5,8 +5,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "linked-posts.routemisr.com",
+        hostname: "route-posts.routemisr.com",
         pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pub-3cba56bacf9f4965bbb0989e07dada12.r2.dev",
+        pathname: "/**",
       },
     ],
   },

@@ -9,14 +9,14 @@ export const getAllComments = createAsyncThunk(
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
     try {
       const res = await axios.get(
-        `https://linked-posts.routemisr.com/posts/${id}/comments`,
+        `https://route-posts.routemisr.com/posts/${id}/comments?page=1&limit=10`,
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      return res.data.comments;
+      return res.data.data.comments;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Something went wrong");
     }
@@ -30,15 +30,15 @@ export const createComment = createAsyncThunk(
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
     try {
       const res = await axios.post(
-        `https://linked-posts.routemisr.com/comments`,
-        data,
+        `https://route-posts.routemisr.com/posts/${data.post}/comments`,
+        { content: data.content },
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      return res.data.comments;
+      return res.data.data.comment;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Something went wrong");
     }
@@ -47,16 +47,16 @@ export const createComment = createAsyncThunk(
 
 export const deleteComment = createAsyncThunk(
   "comments/deletecomment",
-  async (id: string) => {
+  async ({ id, post }: { id: string; post: string }) => {
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
 
     try {
       const res = await axios.delete(
-        `https://linked-posts.routemisr.com/comments/${id}`,
+        `https://route-posts.routemisr.com/posts/${post}/comments/${id}`,
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -70,22 +70,30 @@ export const deleteComment = createAsyncThunk(
 
 export const updateComment = createAsyncThunk(
   "comments/updatecomment",
-  async ({ id, content }: { id: string; content: string }) => {
+  async ({
+    id,
+    post,
+    content,
+  }: {
+    id: string;
+    post: string;
+    content: string;
+  }) => {
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
 
     try {
       const res = await axios.put(
-        `https://linked-posts.routemisr.com/comments/${id}`,
+        `https://route-posts.routemisr.com/posts/${post}/comments/${id}`,
         { content },
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      return res.data;
+      return res.data.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Something went wrong");
     }
@@ -135,7 +143,9 @@ const commentsSlice = createSlice({
       state.isLoading = false;
       state.isError = false;
       state.error = null;
-      state.allComments = action.payload;
+      state.allComments = state.allComments
+        ? [action.payload, ...state.allComments]
+        : [action.payload];
     });
     builder.addCase(createComment.rejected, (state, action) => {
       state.isLoading = false;

@@ -6,7 +6,7 @@ export const handleLogin = createAsyncThunk(
   async (values: { email: string; password: string }) => {
     try {
       const res = await axios.post(
-        "https://linked-posts.routemisr.com/users/signin",
+        "https://route-posts.routemisr.com/users/signin",
         values
       );
       return res.data;
@@ -28,7 +28,7 @@ export const handleRegister = createAsyncThunk(
   }) => {
     try {
       const res = await axios.post(
-        "https://linked-posts.routemisr.com/users/signup",
+        "https://route-posts.routemisr.com/users/signup",
         values
       );
       return res.data;
@@ -62,8 +62,9 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(handleLogin.fulfilled, (state, action: any) => {
-      const token = action.payload?.token;
+      const token = action.payload?.data?.token;
       state.token = token;
+      state.userData = action.payload?.data?.user ?? null;
       state.isLoading = false;
       state.isError = false;
       state.error = "";
@@ -83,9 +84,15 @@ const authSlice = createSlice({
     });
 
     builder.addCase(handleRegister.fulfilled, (state, action: any) => {
+      const token = action.payload?.data?.token;
+      state.token = token;
+      state.userData = action.payload?.data?.user ?? null;
       state.isLoading = false;
       state.isError = false;
       state.error = "";
+      if (typeof window !== "undefined" && token) {
+        localStorage.setItem("token", token);
+      }
     });
     builder.addCase(handleRegister.rejected, (state) => {
       state.isLoading = false;

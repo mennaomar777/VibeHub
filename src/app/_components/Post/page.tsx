@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -55,6 +55,10 @@ export default function Post({
 
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<Comment[]>(postdata.comments || []);
+
+  useEffect(() => {
+    setComments(postdata.comments || []);
+  }, [postdata._id, postdata.comments]);
 
   const postUserId =
     typeof postdata.user === "string" ? postdata.user : postdata.user?._id;
@@ -134,21 +138,19 @@ export default function Post({
       })
     )
       .unwrap()
-      .then((newComments: Comment[]) => {
-        const updatedComments = newComments.map((comment: Comment) => {
-          if (comment.commentCreator._id === currentUserId) {
-            return {
-              ...comment,
-              commentCreator: {
-                ...comment.commentCreator,
-                photo: currentUserPhoto || "",
-              },
-            };
-          }
-          return comment;
-        });
+      .then((newComment: Comment) => {
+        const updatedComment =
+          newComment.commentCreator._id === currentUserId
+            ? {
+                ...newComment,
+                commentCreator: {
+                  ...newComment.commentCreator,
+                  photo: currentUserPhoto || "",
+                },
+              }
+            : newComment;
 
-        setComments(updatedComments);
+        setComments((previous) => [updatedComment, ...previous]);
         setCommentText("");
         toast.success("Comment created successfully!");
       })
@@ -225,6 +227,7 @@ export default function Post({
             variant="subtitle1"
             fontWeight="bold"
             sx={{ cursor: "pointer" }}
+            onClick={() => handleSinglePost(postdata._id)}
           >
             {typeof postdata.user === "string"
               ? "Unknown User"
@@ -238,7 +241,10 @@ export default function Post({
         })}
       />
 
-      <CardContent sx={{ pt: 0 }}>
+      <CardContent
+        sx={{ pt: 0, cursor: "pointer" }}
+        onClick={() => handleSinglePost(postdata._id)}
+      >
         <Typography variant="body1" color="text.primary">
           {postdata.body}
         </Typography>
@@ -251,7 +257,9 @@ export default function Post({
             width: "100%",
             aspectRatio: "1 / 1",
             overflow: "hidden",
+            cursor: "pointer",
           }}
+          onClick={() => handleSinglePost(postdata._id)}
         >
           <Image
             src={postdata.image}

@@ -1,18 +1,19 @@
 export interface PostData {
-  comments: Comment[];
+  comments?: Comment[];
+  topComment?: Comment | null;
+  commentsCount?: number;
   user: User;
   _id: string;
   id?: string;
   body: string;
   image?: string;
-  commentCreator: User;
-  post: string;
   createdAt: string;
 }
 
 export interface User {
   _id: string;
   name: string;
+  username?: string;
   photo?: string;
 }
 

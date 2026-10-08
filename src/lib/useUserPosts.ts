@@ -14,10 +14,10 @@ export default function useUserInfo(id: string) {
       const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : "";
       const res = await axios.get(
-        `https://linked-posts.routemisr.com/users/${id}/posts?limit=2`,
-        { headers: { token: token || "" } }
+        `https://route-posts.routemisr.com/users/${id}/posts?limit=2`,
+        { headers: { Authorization: `Bearer ${token || ""}` } }
       );
-      setPosts(res.data.posts || []);
+      setPosts(res.data.data?.posts ?? res.data.posts ?? []);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {

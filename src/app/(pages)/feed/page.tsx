@@ -34,12 +34,9 @@ export default function Home() {
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 3, md: 4 } }}>
-      {/* Create Post Card */}
       <Box sx={{ mb: 5 }}>
         <CreatePost />
       </Box>
-
-      {/* Posts Feed */}
       <Box>
         {isLoading ? (
           <Box sx={{ display: "flex", justifyContent: "center", my: 8 }}>
@@ -52,7 +49,7 @@ export default function Home() {
                 postdata={post}
                 currentUserId={currentUserId}
                 showAllComments={false}
-                currentUserPhoto={userData.photo || ""}
+                currentUserPhoto={userData?.photo || ""}
               />
             </Box>
           ))
