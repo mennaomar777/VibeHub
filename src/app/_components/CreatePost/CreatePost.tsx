@@ -1,198 +1,358 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useRef, useState } from "react";
 import {
+  Avatar,
   Box,
   Button,
+  Divider,
+  IconButton,
   Paper,
-  Stack,
+  Popover,
   TextField,
   Typography,
-  IconButton,
 } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import SendIcon from "@mui/icons-material/Send";
+import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import CancelIcon from "@mui/icons-material/Cancel";
+import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
+import SentimentSatisfiedOutlinedIcon from "@mui/icons-material/SentimentSatisfiedOutlined";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import EmojiPicker from "emoji-picker-react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
-import { dispatchType } from "@/lib/store";
-import { getAllPosts } from "@/lib/postSlice";
+import { useSelector } from "react-redux";
+import { stateType } from "@/lib/store";
 
-export default function CreatePost() {
+export default function CreatePost({
+  onPostChange,
+}: {
+  onPostChange: () => void;
+}) {
   const [postBody, setPostBody] = useState("");
   const [imgPost, setImgPost] = useState<File | null>(null);
   const [imgSrc, setImgSrc] = useState("");
-  const dispatch = useDispatch<dispatchType>();
+  const [isPosting, setIsPosting] = useState(false);
+  const [emojiAnchor, setEmojiAnchor] = useState<HTMLElement | null>(null);
+  const postTextRef = useRef<HTMLTextAreaElement>(null);
+  const selectionRef = useRef({ start: 0, end: 0 });
+  const { userData } = useSelector((state: stateType) => state.profile);
 
-  function handlePostBody(e: any) {
-    setPostBody(e.target.value);
-  }
-  function handlePostImage(e: any) {
-    if (e.target.files && e.target.files[0]) {
-      setImgPost(e.target.files[0]);
-      const srcImage = URL.createObjectURL(e.target.files[0]);
-      setImgSrc(srcImage);
+  function saveTextSelection() {
+    const textArea = postTextRef.current;
+    if (textArea) {
+      selectionRef.current = {
+        start: textArea.selectionStart ?? 0,
+        end: textArea.selectionEnd ?? 0,
+      };
     }
   }
-  function createPost() {
+
+  function insertEmoji(emoji: string) {
+    const { start, end } = selectionRef.current;
+    const nextBody = `${postBody.slice(0, start)}${emoji}${postBody.slice(end)}`;
+    const nextCursor = start + emoji.length;
+
+    setPostBody(nextBody);
+    setEmojiAnchor(null);
+    window.requestAnimationFrame(() => {
+      postTextRef.current?.focus();
+      postTextRef.current?.setSelectionRange(nextCursor, nextCursor);
+      selectionRef.current = { start: nextCursor, end: nextCursor };
+    });
+  }
+
+  function handlePostImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (imgSrc) URL.revokeObjectURL(imgSrc);
+    setImgPost(file);
+    setImgSrc(URL.createObjectURL(file));
+    event.target.value = "";
+  }
+
+  async function createPost() {
     if (!postBody.trim() && !imgPost) {
       toast.error("Please add text or an image");
       return;
     }
-    const formData = new FormData();
-    formData.append("body", postBody);
-    if (imgPost) {
-      formData.append("image", imgPost);
-    }
 
-    axios
-      .post(`https://route-posts.routemisr.com/posts`, formData, {
+    const formData = new FormData();
+    formData.append("body", postBody.trim());
+    if (imgPost) formData.append("image", imgPost);
+
+    setIsPosting(true);
+    try {
+      await axios.post("https://route-posts.routemisr.com/posts", formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
         },
-      })
-      .then(() => {
-        toast.success("Post created successfully!");
-        setPostBody("");
-        setImgPost(null);
-        setImgSrc("");
-        dispatch(getAllPosts());
-      })
-      .catch(() => {
-        toast.error("Post doesn't created!");
       });
+      toast.success("Post created successfully!");
+      setPostBody("");
+      setImgPost(null);
+      if (imgSrc) URL.revokeObjectURL(imgSrc);
+      setImgSrc("");
+      onPostChange();
+    } catch {
+      toast.error("Post couldn't be created. Please try again.");
+    } finally {
+      setIsPosting(false);
+    }
   }
-  const removeImage = () => {
+
+  function removeImage() {
+    if (imgSrc) URL.revokeObjectURL(imgSrc);
     setImgPost(null);
     setImgSrc("");
-  };
+  }
+
   return (
-    <>
-      <Paper
-        elevation={3}
-        sx={{
-          width: "92%",
-          p: { xs: 3, sm: 4 },
-          my: 4,
-          borderRadius: 4,
-          bgcolor: "background.paper",
-          boxShadow: "0 4px 20px rgb(0 0 0 / 0.05)",
-        }}
-      >
-        <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>
-          Create a new post
-        </Typography>
-
-        <Stack spacing={3}>
-          <TextField
-            placeholder="What's on your mind?"
-            multiline
-            rows={5}
-            value={postBody}
-            onChange={handlePostBody}
-            variant="outlined"
-            fullWidth
+    <Paper
+      component="section"
+      aria-label="Create a post"
+      elevation={0}
+      sx={{
+        width: "100%",
+        maxWidth: "none",
+        boxSizing: "border-box",
+        p: { xs: 1.5, sm: 2 },
+        border: "1px solid #dce4ee",
+        borderRadius: { xs: "16px", sm: "20px" },
+        bgcolor: "#fff",
+        boxShadow: "0 2px 5px rgb(24 34 55 / 0.12)",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
+        <Avatar
+          src={userData?.photo || undefined}
+          alt={userData?.name || "Your profile"}
+          sx={{ width: 44, height: 44, bgcolor: "#e7f2ff", color: "#1769e8" }}
+        >
+          {!userData?.photo && <PersonOutlineIcon sx={{ fontSize: 30 }} />}
+        </Avatar>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
             sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-                bgcolor: "#f8fafc",
-              },
-            }}
-          />
-
-          {imgSrc && (
-            <Box
-              sx={{
-                my: 3,
-                textAlign: "center",
-                position: "relative",
-              }}
-            >
-              <Box
-                component="img"
-                src={imgSrc}
-                alt="Post preview"
-                sx={{
-                  maxWidth: { xs: "100%", sm: "70%" },
-                  height: "auto",
-                  borderRadius: 3,
-                  boxShadow: 2,
-                  display: "inline-block",
-                }}
-              />
-              <IconButton
-                onClick={removeImage}
-                sx={{
-                  position: "absolute",
-                  top: 12,
-                  right: { xs: 12, sm: "17%" },
-                  bgcolor: "background.paper",
-                  boxShadow: 3,
-                  "&:hover": { bgcolor: "grey.200" },
-                }}
-              >
-                <CancelIcon />
-              </IconButton>
-            </Box>
-          )}
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 2,
-              flexWrap: "wrap",
+              color: "#111827",
+              fontSize: 16,
+              fontWeight: 800,
+              lineHeight: 1.3,
             }}
           >
-            <Button
-              component="label"
-              variant="outlined"
-              startIcon={<CloudUploadIcon />}
-              sx={{
-                textTransform: "none",
-                fontWeight: 500,
-                borderRadius: 3,
-                px: 3,
-                py: 1.5,
-                borderColor: "primary.main",
-                color: "primary.main",
-                "&:hover": {
-                  borderColor: "primary.dark",
-                  bgcolor: "primary.50",
-                },
-              }}
-            >
-              Upload Image
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handlePostImage}
-              />
-            </Button>
-
-            <Button
-              variant="contained"
-              endIcon={<SendIcon />}
-              onClick={createPost}
-              disabled={!postBody.trim() && !imgPost}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: 3,
-                px: 4,
-                py: 1.5,
-                boxShadow: 2,
-                "&:hover": {
-                  boxShadow: 4,
-                },
-              }}
-            >
-              Post
-            </Button>
+            {userData?.name || "Your name"}
+          </Typography>
+          <Box
+            aria-label="Post audience: Public"
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.8,
+              mt: 0.6,
+              px: 1.1,
+              py: 0.45,
+              borderRadius: "999px",
+              bgcolor: "#f0f4f8",
+              color: "#34445c",
+              fontSize: 12,
+              fontWeight: 500,
+            }}
+          >
+            <PublicOutlinedIcon sx={{ fontSize: 16 }} />
+            <span>Public</span>
+            <KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />
           </Box>
-        </Stack>
-      </Paper>
-    </>
+        </Box>
+      </Box>
+
+      <TextField
+        placeholder={`What's on your mind${userData?.name ? `, ${userData.name.split(" ")[0]}` : ""}?`}
+        multiline
+        minRows={4}
+        fullWidth
+        inputRef={postTextRef}
+        value={postBody}
+        onChange={(event) => {
+          setPostBody(event.target.value);
+          selectionRef.current = {
+            start: event.target.selectionStart ?? 0,
+            end: event.target.selectionEnd ?? 0,
+          };
+        }}
+        onSelect={saveTextSelection}
+        inputProps={{ "aria-label": "What's on your mind?" }}
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            alignItems: "flex-start",
+            minHeight: 132,
+            p: { xs: 1.4, sm: 1.7 },
+            borderRadius: "18px",
+            bgcolor: "#f8fafc",
+            color: "#1c293d",
+            fontSize: { xs: 15, sm: 17 },
+            lineHeight: 1.5,
+            "& textarea": { resize: "vertical" },
+            "& fieldset": { borderColor: "#dce4ee" },
+            "&:hover fieldset": { borderColor: "#c3d0df" },
+            "&.Mui-focused fieldset": { borderColor: "#8dbaff" },
+          },
+          "& .MuiInputBase-input::placeholder": {
+            color: "#8b95a3",
+            opacity: 1,
+          },
+        }}
+      />
+
+      {imgSrc && (
+        <Box sx={{ position: "relative", mt: 2, textAlign: "center" }}>
+          <Box
+            component="img"
+            src={imgSrc}
+            alt="Selected post preview"
+            sx={{
+              maxWidth: "100%",
+              maxHeight: 280,
+              borderRadius: 2,
+              objectFit: "contain",
+            }}
+          />
+          <IconButton
+            aria-label="Remove selected image"
+            onClick={removeImage}
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              bgcolor: "#fff",
+              boxShadow: 1,
+            }}
+          >
+            <CancelIcon />
+          </IconButton>
+        </Box>
+      )}
+
+      <Divider sx={{ mt: 1.75, borderColor: "#1f2937" }} />
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1,
+          flexWrap: "wrap",
+          pt: 1.1,
+        }}
+      >
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: { xs: 0, sm: 1 } }}
+        >
+          <Button
+            component="label"
+            startIcon={<AddPhotoAlternateOutlinedIcon />}
+            sx={{
+              minHeight: 38,
+              px: { xs: 0.75, sm: 1.1 },
+              color: "#40516c",
+              fontSize: { xs: 12, sm: 14 },
+              fontWeight: 500,
+              textTransform: "none",
+              whiteSpace: "nowrap",
+              "& .MuiSvgIcon-root": { color: "#00a66c", fontSize: 20 },
+            }}
+          >
+            Photo/video
+            <input
+              hidden
+              type="file"
+              accept="image/*"
+              onChange={handlePostImage}
+            />
+          </Button>
+          <Button
+            startIcon={<SentimentSatisfiedOutlinedIcon />}
+            aria-haspopup="dialog"
+            aria-expanded={Boolean(emojiAnchor)}
+            onMouseDown={saveTextSelection}
+            onClick={(event) => {
+              saveTextSelection();
+              setEmojiAnchor(event.currentTarget);
+            }}
+            sx={{
+              minHeight: 38,
+              px: { xs: 0.75, sm: 1.1 },
+              color: "#40516c",
+              fontSize: { xs: 12, sm: 14 },
+              fontWeight: 500,
+              textTransform: "none",
+              whiteSpace: "nowrap",
+              "& .MuiSvgIcon-root": { color: "#ff9800", fontSize: 20 },
+            }}
+          >
+            Feeling/activity
+          </Button>
+          <Popover
+            open={Boolean(emojiAnchor)}
+            anchorEl={emojiAnchor}
+            onClose={() => setEmojiAnchor(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+            slotProps={{
+              paper: {
+                sx: {
+                  mt: 1,
+                  p: 0,
+                  width: 360,
+                  border: "1px solid #dce4ee",
+                  borderRadius: "14px",
+                  boxShadow: "0 8px 24px rgb(24 34 55 / 0.16)",
+                  overflow: "hidden",
+                },
+              },
+            }}
+          >
+            <EmojiPicker
+              width={360}
+              height={480}
+              colorScheme="light"
+              previewConfig={{ showPreview: false }}
+              onEmojiClick={(emojiData) => insertEmoji(emojiData.emoji)}
+            />
+          </Popover>
+        </Box>
+
+        <Button
+          variant="contained"
+          endIcon={<SendOutlinedIcon />}
+          onClick={createPost}
+          disabled={isPosting || (!postBody.trim() && !imgPost)}
+          sx={{
+            minWidth: 112,
+            minHeight: 44,
+            px: 2,
+            borderRadius: "11px",
+            bgcolor: "#70aafa",
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 750,
+            textTransform: "none",
+            boxShadow: "0 2px 5px rgb(23 105 232 / 0.2)",
+            "&:hover": {
+              bgcolor: "#4d91ee",
+              boxShadow: "0 3px 8px rgb(23 105 232 / 0.25)",
+            },
+            "&.Mui-disabled": {
+              bgcolor: "#70aafa",
+              color: "#fff",
+              opacity: 0.78,
+            },
+          }}
+        >
+          {isPosting ? "Posting…" : "Post"}
+        </Button>
+      </Box>
+    </Paper>
   );
 }

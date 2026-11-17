@@ -1,30 +1,67 @@
 import { Box, Container, Typography } from "@mui/material";
-import React from "react";
+import HubOutlined from "@mui/icons-material/HubOutlined";
 
 export default function Footer() {
   return (
     <Box
       component="footer"
       sx={{
-        py: 4,
         mt: "auto",
-        bgcolor: "background.paper",
-        borderTop: "1px solid",
-        borderColor: "divider",
+        bgcolor: "#fff",
+        borderTop: "1px solid #e5eaf2",
       }}
     >
-      <Container maxWidth="lg">
-        <Typography variant="body2" color="text.secondary" align="center">
-          © {new Date().getFullYear()} VibeHub. All rights reserved.
-        </Typography>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          align="center"
-          sx={{ mt: 1 }}
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 2.25 } }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: { xs: 1.5, sm: 2 },
+          }}
         >
-          Made with ❤️ using Next.js, MUI & Redux Toolkit
-        </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.1 }}>
+            <Box
+              aria-hidden="true"
+              sx={{
+                width: 32,
+                height: 32,
+                display: "grid",
+                placeItems: "center",
+                borderRadius: "10px",
+                color: "#fff",
+                background: "linear-gradient(145deg, #1769e8 0%, #0b318f 100%)",
+                boxShadow: "0 3px 8px rgb(23 105 232 / 0.18)",
+              }}
+            >
+              <HubOutlined sx={{ fontSize: 19 }} />
+            </Box>
+            <Box>
+              <Typography
+                sx={{
+                  color: "#172033",
+                  fontSize: 14,
+                  fontWeight: 800,
+                  letterSpacing: "-.03em",
+                  lineHeight: 1.2,
+                }}
+              >
+                vibeHub
+              </Typography>
+              <Typography sx={{ mt: 0.25, color: "#71809a", fontSize: 11 }}>
+                Share what matters.
+              </Typography>
+            </Box>
+          </Box>
+
+          <Typography
+            component="small"
+            sx={{ color: "#71809a", fontSize: 12, textAlign: "center" }}
+          >
+            © {new Date().getFullYear()} VibeHub. All rights reserved.
+          </Typography>
+        </Box>
       </Container>
     </Box>
   );

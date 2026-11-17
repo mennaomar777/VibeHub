@@ -2,6 +2,104 @@ import { UserData } from "@/app/interfaces/postData";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
+export type FollowSuggestion = {
+  _id: string;
+  name: string;
+  username: string;
+  photo?: string;
+  mutualFollowersCount: number;
+  followersCount: number;
+};
+
+export const toggleFollowUser = createAsyncThunk(
+  "profile/toggleFollowUser",
+  async ({ userId }: { userId: string }) => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : "";
+
+    try {
+      const response = await axios.put(
+        `https://route-posts.routemisr.com/users/${userId}/follow`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      return {
+        userId,
+        following: Boolean(response.data.data.following),
+        followersCount: Number(response.data.data.followersCount ?? 0),
+      };
+    } catch (error: unknown) {
+      if (axios.isAxiosError<{ message?: string }>(error)) {
+        throw new Error(error.response?.data?.message || "Could not update follow status");
+      }
+
+      throw error;
+    }
+  },
+);
+
+export const getUserProfileById = createAsyncThunk(
+  "profile/userProfileById",
+  async (userId: string) => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : "";
+
+    try {
+      const response = await axios.get(
+        `https://route-posts.routemisr.com/users/${userId}/profile`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      return {
+        user: response.data.data.user as UserData,
+        isFollowing: Boolean(response.data.data.isFollowing),
+      };
+    } catch (error: unknown) {
+      if (axios.isAxiosError<{ message?: string }>(error)) {
+        throw new Error(error.response?.data?.message || "Could not load profile");
+      }
+
+      throw error;
+    }
+  },
+);
+
+export const getFollowSuggestions = createAsyncThunk(
+  "profile/followSuggestions",
+  async ({ page = 1, limit = 10 }: { page?: number; limit?: number } = {}) => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : "";
+
+    try {
+      const response = await axios.get(
+        "https://route-posts.routemisr.com/users/suggestions",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page, limit },
+        },
+      );
+      const pagination = response.data.meta?.pagination;
+
+      return {
+        suggestions: response.data.data.suggestions as FollowSuggestion[],
+        page: pagination?.currentPage ?? page,
+        hasMore: Boolean(pagination?.nextPage),
+      };
+    } catch (error: unknown) {
+      if (axios.isAxiosError<{ message?: string }>(error)) {
+        throw new Error(
+          error.response?.data?.message || "Could not load friend suggestions",
+        );
+      }
+
+      throw error;
+    }
+  },
+);
+
 export const uploadProfilePhoto = createAsyncThunk(
   "profile/uploadPhoto",
   async (formdata: FormData) => {
@@ -73,6 +171,19 @@ const initialState: {
   error: string | null;
   message: string;
   userData: UserData;
+  viewedUser: UserData | null;
+  viewedUserId: string | null;
+  viewedUserIsFollowing: boolean;
+  followStatusByUserId: Record<string, boolean>;
+  followActionUserIds: string[];
+  viewedUserLoading: boolean;
+  viewedUserError: string | null;
+  followSuggestions: FollowSuggestion[];
+  suggestionsLoaded: boolean;
+  suggestionsLoading: boolean;
+  suggestionsError: string | null;
+  suggestionsHasMore: boolean;
+  suggestionsPage: number;
 } = {
   isLoading: false,
   isError: false,
@@ -87,6 +198,19 @@ const initialState: {
     photo: "",
     createdAt: "",
   },
+  viewedUser: null,
+  viewedUserId: null,
+  viewedUserIsFollowing: false,
+  followStatusByUserId: {},
+  followActionUserIds: [],
+  viewedUserLoading: false,
+  viewedUserError: null,
+  followSuggestions: [],
+  suggestionsLoaded: false,
+  suggestionsLoading: false,
+  suggestionsError: null,
+  suggestionsHasMore: false,
+  suggestionsPage: 0,
 };
 
 const profileSlice = createSlice({
@@ -94,6 +218,95 @@ const profileSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
+    builder.addCase(getUserProfileById.pending, (state, action) => {
+      state.viewedUserId = action.meta.arg;
+      state.viewedUser = null;
+      state.viewedUserIsFollowing = false;
+      state.viewedUserLoading = true;
+      state.viewedUserError = null;
+    });
+    builder.addCase(getUserProfileById.fulfilled, (state, action) => {
+      if (state.viewedUserId !== action.meta.arg) return;
+      state.viewedUser = action.payload.user;
+      state.viewedUserIsFollowing = action.payload.isFollowing;
+      state.followStatusByUserId[action.meta.arg] = action.payload.isFollowing;
+      state.viewedUserLoading = false;
+    });
+    builder.addCase(getUserProfileById.rejected, (state, action) => {
+      if (state.viewedUserId !== action.meta.arg) return;
+      state.viewedUserLoading = false;
+      state.viewedUserError = action.error.message || "Could not load profile";
+    });
+
+    builder.addCase(getFollowSuggestions.pending, (state) => {
+      state.suggestionsLoading = true;
+      state.suggestionsError = null;
+    });
+    builder.addCase(getFollowSuggestions.fulfilled, (state, action) => {
+      const { page, suggestions, hasMore } = action.payload;
+      const existing = page === 1 ? [] : state.followSuggestions;
+      const existingIds = new Set(existing.map((user) => user._id));
+      state.followSuggestions = [
+        ...existing,
+        ...suggestions.filter((user) => !existingIds.has(user._id)),
+      ];
+      state.suggestionsPage = page;
+      state.suggestionsHasMore = hasMore;
+      state.suggestionsLoaded = true;
+      state.suggestionsLoading = false;
+    });
+    builder.addCase(getFollowSuggestions.rejected, (state, action) => {
+      state.suggestionsLoading = false;
+      state.suggestionsError =
+        action.error.message || "Could not load friend suggestions";
+    });
+
+    builder.addCase(toggleFollowUser.pending, (state, action) => {
+      if (!state.followActionUserIds.includes(action.meta.arg.userId)) {
+        state.followActionUserIds.push(action.meta.arg.userId);
+      }
+    });
+    builder.addCase(toggleFollowUser.fulfilled, (state, action) => {
+      const { userId, following, followersCount } = action.payload;
+      const wasFollowing =
+        state.followStatusByUserId[userId] ??
+        (state.viewedUserId === userId && state.viewedUserIsFollowing);
+
+      state.followStatusByUserId[userId] = following;
+      state.followActionUserIds = state.followActionUserIds.filter(
+        (id) => id !== userId,
+      );
+
+      if (state.viewedUserId === userId) {
+        state.viewedUserIsFollowing = following;
+        if (state.viewedUser) state.viewedUser.followersCount = followersCount;
+      }
+
+      if (following) {
+        state.followSuggestions = state.followSuggestions.filter(
+          (user) => user._id !== userId,
+        );
+      } else {
+        const suggestion = state.followSuggestions.find(
+          (user) => user._id === userId,
+        );
+        if (suggestion) suggestion.followersCount = followersCount;
+      }
+
+      if (state.userData._id) {
+        const followingDelta = Number(following) - Number(wasFollowing);
+        state.userData.followingCount = Math.max(
+          0,
+          (state.userData.followingCount ?? state.userData.following?.length ?? 0) + followingDelta,
+        );
+      }
+    });
+    builder.addCase(toggleFollowUser.rejected, (state, action) => {
+      state.followActionUserIds = state.followActionUserIds.filter(
+        (id) => id !== action.meta.arg.userId,
+      );
+    });
+
     builder.addCase(uploadProfilePhoto.fulfilled, (state, action) => {
       state.isLoading = false;
       state.isError = false;
