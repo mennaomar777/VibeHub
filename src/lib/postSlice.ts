@@ -238,9 +238,15 @@ export const sharePost = createAsyncThunk(
   },
 );
 
+type TogglePostLikeArgs = {
+  postId: string;
+  currentlyLiked: boolean;
+  likesCount: number;
+};
+
 export const togglePostLike = createAsyncThunk(
   "post/toggleLike",
-  async (postId: string) => {
+  async ({ postId }: TogglePostLikeArgs) => {
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
 
@@ -265,6 +271,12 @@ export const togglePostLike = createAsyncThunk(
 
       throw error;
     }
+  },
+  {
+    condition: ({ postId }, { getState }) =>
+      !(getState() as { post: { likingPostIds: string[] } }).post.likingPostIds.includes(
+        postId,
+      ),
   },
 );
 
@@ -320,6 +332,10 @@ const initialState: {
   likesLoading: boolean;
   likesError: string | null;
   likingPostIds: string[];
+  postLikeOverrides: Record<
+    string,
+    { isLiked: boolean; likesCount: number; requestId?: string }
+  >;
   bookmarkingPostIds: string[];
 } = {
   allPosts: null,
@@ -339,6 +355,7 @@ const initialState: {
   likesLoading: false,
   likesError: null,
   likingPostIds: [],
+  postLikeOverrides: {},
   bookmarkingPostIds: [],
 };
 const postSlice = createSlice({
@@ -449,26 +466,46 @@ const postSlice = createSlice({
     });
 
     builder.addCase(togglePostLike.pending, (state, action) => {
-      if (!state.likingPostIds.includes(action.meta.arg)) {
-        state.likingPostIds.push(action.meta.arg);
+      const { postId, currentlyLiked, likesCount } = action.meta.arg;
+      if (!state.likingPostIds.includes(postId)) state.likingPostIds.push(postId);
+      const previous = state.postLikeOverrides[postId];
+      state.postLikeOverrides[postId] = {
+        isLiked: !currentlyLiked,
+        likesCount: Math.max(0, likesCount + (currentlyLiked ? -1 : 1)),
+        requestId: action.meta.requestId,
+      };
+      if (previous) {
+        state.postLikeOverrides[postId].likesCount = Math.max(
+          0,
+          previous.likesCount + (currentlyLiked ? -1 : 1),
+        );
       }
     });
 
     builder.addCase(togglePostLike.fulfilled, (state, action) => {
       const { postId, data } = action.payload;
-      const { liked, likesCount } = data;
+      const currentOverride = state.postLikeOverrides[postId];
 
-      // Remove postId from loading list
       state.likingPostIds = state.likingPostIds.filter((id) => id !== postId);
+      if (currentOverride?.requestId !== action.meta.requestId) return;
+      state.postLikeOverrides[postId] = {
+        isLiked: Boolean(data.liked),
+        likesCount: Math.max(
+          0,
+          Number(data.likesCount ?? currentOverride.likesCount),
+        ),
+      };
 
-      // Update the post's like status and count
       const updateLike = (post: PostData) => {
         if (post._id !== postId) return post;
 
         return {
           ...post,
-          isLiked: liked,
-          likesCount: likesCount,
+          isLiked: Boolean(data.liked),
+          likesCount: Math.max(
+            0,
+            Number(data.likesCount ?? currentOverride.likesCount),
+          ),
         };
       };
 
@@ -483,12 +520,17 @@ const postSlice = createSlice({
       if (state.singlePost) {
         state.singlePost = updateLike(state.singlePost);
       }
+      if (state.savedPosts) state.savedPosts = state.savedPosts.map(updateLike);
     });
 
     builder.addCase(togglePostLike.rejected, (state, action) => {
-      state.likingPostIds = state.likingPostIds.filter(
-        (id) => id !== action.meta.arg,
-      );
+      const { postId, currentlyLiked, likesCount } = action.meta.arg;
+      state.likingPostIds = state.likingPostIds.filter((id) => id !== postId);
+      if (state.postLikeOverrides[postId]?.requestId !== action.meta.requestId) return;
+      state.postLikeOverrides[postId] = {
+        isLiked: currentlyLiked,
+        likesCount: Math.max(0, likesCount),
+      };
     });
 
     builder.addCase(togglePostBookmark.pending, (state, action) => {

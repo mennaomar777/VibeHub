@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -32,7 +33,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import SentimentSatisfiedOutlinedIcon from "@mui/icons-material/SentimentSatisfiedOutlined";
@@ -52,8 +53,8 @@ import {
   togglePostLike,
   updatePost,
   sharePost,
+  getAllPosts,
 } from "@/lib/postSlice";
-import { getAllPosts } from "@/lib/postSlice";
 import { dispatchType, stateType } from "@/lib/store";
 import toast from "react-hot-toast";
 import CommentItem from "../CommentItem/CommentItem";
@@ -62,6 +63,53 @@ import PersonIcon from "@mui/icons-material/Person";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { PostLike } from "@/app/interfaces/postData";
+
+const primaryButtonSx = {
+  bgcolor: "var(--accent-strong)",
+  color: "#172033",
+  fontWeight: 800,
+  textTransform: "none",
+  boxShadow: "none",
+  "&:hover": {
+    bgcolor: "var(--accent-strong)",
+    filter: "brightness(0.92)",
+    boxShadow: "none",
+  },
+  "&.Mui-disabled": {
+    bgcolor: "var(--accent-disabled)",
+    color: "var(--text-muted)",
+  },
+};
+
+const dialogPaperSx = {
+  bgcolor: "var(--surface)",
+  color: "var(--text-primary)",
+  border: "1px solid var(--border)",
+  backgroundImage: "none",
+};
+
+const dialogTextFieldSx = {
+  "& .MuiOutlinedInput-root": {
+    color: "var(--text-primary)",
+    bgcolor: "var(--surface-subtle)",
+    "& fieldset": {
+      borderColor: "var(--border)",
+    },
+    "&:hover fieldset": {
+      borderColor: "var(--border-strong)",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "var(--accent-strong)",
+    },
+  },
+  "& .MuiInputBase-input::placeholder": {
+    color: "var(--text-muted)",
+    opacity: 1,
+  },
+  "& .MuiFormHelperText-root": {
+    color: "var(--text-muted)",
+  },
+};
 
 function formatRelativeTime(date: string) {
   const elapsed = Math.max(0, Date.now() - new Date(date).getTime());
@@ -97,6 +145,7 @@ export default function Post({
 }) {
   const router = useRouter();
   const dispatch = useDispatch<dispatchType>();
+
   const {
     postLikes,
     likesPage,
@@ -105,7 +154,9 @@ export default function Post({
     likesError,
     likingPostIds,
     bookmarkingPostIds,
+    postLikeOverrides,
   } = useSelector((state: stateType) => state.post);
+
   const {
     currentPostId: commentsPostId,
     commentsPage,
@@ -137,6 +188,26 @@ export default function Post({
   const [shareText, setShareText] = useState("");
   const [isSharing, setIsSharing] = useState(false);
   const { userData } = useSelector((state: stateType) => state.profile);
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const updateTheme = () => {
+      setIsDarkMode(
+        document.documentElement.getAttribute("data-theme") === "dark",
+      );
+    };
+
+    updateTheme();
+
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     setComments(postdata.comments || []);
@@ -253,6 +324,7 @@ export default function Post({
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
+
     if (!file.type.startsWith("image/")) {
       toast.error("Choose an image file to attach.");
       return;
@@ -264,6 +336,7 @@ export default function Post({
 
   async function handleShare() {
     if (isSharing) return;
+
     if (!shareText.trim()) {
       toast.error("Add a message before sharing this post.");
       return;
@@ -274,9 +347,11 @@ export default function Post({
       await dispatch(
         sharePost({ postId: postdata._id, body: shareText.trim() }),
       ).unwrap();
+
       setShareDialogOpen(false);
       setShareText("");
       toast.success("Post shared successfully");
+
       if (onPostChange) onPostChange();
       else dispatch(getAllPosts());
     } catch (error) {
@@ -289,6 +364,7 @@ export default function Post({
   }
 
   const openShareDialog = () => setShareDialogOpen(true);
+
   const closeShareDialog = () => {
     if (isSharing) return;
     setShareDialogOpen(false);
@@ -300,38 +376,56 @@ export default function Post({
 
   const postAuthor = typeof postdata.user === "string" ? null : postdata.user;
   const postName = postAuthor?.name || "Unknown User";
+
   const postUsername = postAuthor?.username
     ? `@${postAuthor.username.replace(/^@/, "")}`
     : `@${postName.toLowerCase().replace(/\s+/g, "")}`;
+
   const sharedPostData = postdata.isShare ? postdata.sharedPost : null;
+
   const sharedAuthor =
     sharedPostData && typeof sharedPostData.user !== "string"
       ? sharedPostData.user
       : null;
+
   const commentCount = Math.max(postdata.commentsCount || 0, comments.length);
   const topComment = postdata.topComment || comments[0];
+
   const sortedComments = [...comments].sort((first, second) =>
     commentSort === "newest"
       ? new Date(second.createdAt).getTime() -
         new Date(first.createdAt).getTime()
       : 0,
   );
+
   const likedUsers = postLikes[postdata._id] || [];
   const hasMoreLikes = likesHasMore[postdata._id] ?? false;
   const isLiking = likingPostIds.includes(postdata._id);
   const isBookmarking = bookmarkingPostIds.includes(postdata._id);
+
   const isPostLiked =
+    postLikeOverrides[postdata._id]?.isLiked ??
     postdata.isLiked ??
     (currentUserId
       ? (postdata.likes?.includes(currentUserId) ?? false)
       : false);
+  const postLikesCount =
+    postLikeOverrides[postdata._id]?.likesCount ??
+    postdata.likesCount ??
+    postdata.likes?.length ??
+    0;
 
-  function handleToggleLike() {
-    dispatch(togglePostLike(postdata._id))
-      .unwrap()
-      .catch((error: Error) => {
-        toast.error(error.message || "Could not update like");
-      });
+  async function handleToggleLike() {
+    const result = await dispatch(
+      togglePostLike({
+        postId: postdata._id,
+        currentlyLiked: isPostLiked,
+        likesCount: postLikesCount,
+      }),
+    );
+    if (togglePostLike.rejected.match(result) && !result.meta.condition) {
+      toast.error(result.error.message || "Could not update like");
+    }
   }
 
   function handleToggleBookmark() {
@@ -351,6 +445,7 @@ export default function Post({
 
   function openLikesDialog() {
     setLikesDialogOpen(true);
+
     if (!postLikes[postdata._id]) {
       dispatch(getPostLikes({ postId: postdata._id, page: 1, limit: 20 }));
     }
@@ -369,6 +464,7 @@ export default function Post({
   const isLoadingComments =
     commentsLoading ||
     (commentsPostId === postdata._id && commentsFetchLoading);
+
   const commentsError =
     showAllComments && commentsPostId === postdata._id
       ? commentsFetchError
@@ -378,6 +474,7 @@ export default function Post({
     const nextPage = commentsError
       ? Math.max(1, commentsPage + (commentsPage > 0 ? 1 : 0))
       : commentsPage + 1;
+
     dispatch(
       getAllComments({ postId: postdata._id, page: nextPage, limit: 10 }),
     );
@@ -390,10 +487,12 @@ export default function Post({
         maxWidth: "none",
         boxSizing: "border-box",
         my: 0,
-        border: "1px solid #dce4ee",
+        border: "1px solid var(--border)",
         borderRadius: "17px",
         boxShadow: "0 2px 5px rgb(24 34 55 / 0.12)",
         overflow: "hidden",
+        bgcolor: "var(--surface)",
+        color: "var(--text-primary)",
       }}
     >
       <Box
@@ -413,11 +512,17 @@ export default function Post({
           <Avatar
             src={userPhoto || undefined}
             alt={postName}
-            sx={{ width: 44, height: 44, bgcolor: "#e7f2ff", color: "#1769e8" }}
+            sx={{
+              width: 44,
+              height: 44,
+              bgcolor: "var(--accent-soft)",
+              color: "var(--accent-strong)",
+            }}
           >
             {!userPhoto && <PersonIcon sx={{ fontSize: 28 }} />}
           </Avatar>
         </ButtonBase>
+
         <Box sx={{ minWidth: 0, flex: 1, pt: 0.2 }}>
           <Typography
             component="button"
@@ -427,7 +532,7 @@ export default function Post({
               p: 0,
               border: 0,
               bgcolor: "transparent",
-              color: "#111827",
+              color: "var(--text-primary)",
               font: "inherit",
               fontSize: 16,
               fontWeight: 800,
@@ -438,6 +543,7 @@ export default function Post({
           >
             {postName}
           </Typography>
+
           <Box
             sx={{
               display: "flex",
@@ -445,7 +551,7 @@ export default function Post({
               flexWrap: "wrap",
               gap: 1,
               mt: 0.6,
-              color: "#40516c",
+              color: "var(--text-secondary)",
             }}
           >
             <Typography
@@ -460,28 +566,35 @@ export default function Post({
                 fontSize: 12,
                 lineHeight: 1.5,
                 cursor: "pointer",
-                "&:hover": { color: "#1769e8", textDecoration: "underline" },
+                "&:hover": {
+                  color: "var(--accent-strong)",
+                  textDecoration: "underline",
+                },
               }}
             >
               {postUsername}
             </Typography>
+
             <Typography
               component="span"
               aria-hidden="true"
-              sx={{ color: "#71809a" }}
+              sx={{ color: "var(--text-muted)" }}
             >
               ·
             </Typography>
+
             <Typography component="span" sx={{ fontSize: 12 }}>
               {formatRelativeTime(postdata.createdAt)}
             </Typography>
+
             <Typography
               component="span"
               aria-hidden="true"
-              sx={{ color: "#71809a" }}
+              sx={{ color: "var(--text-muted)" }}
             >
               ·
             </Typography>
+
             <Box
               sx={{
                 display: "inline-flex",
@@ -494,26 +607,28 @@ export default function Post({
             </Box>
           </Box>
         </Box>
+
         <>
           <IconButton
             aria-label="Post options"
             onClick={handleClick}
             sx={{
               mt: -0.5,
-              color: open ? "#1769e8" : "#64748b",
-              bgcolor: open ? "#eaf3ff" : "transparent",
+              color: open ? "var(--accent-strong)" : "var(--text-secondary)",
+              bgcolor: open ? "var(--accent-soft)" : "transparent",
               border: "1px solid",
-              borderColor: open ? "#c8defa" : "transparent",
+              borderColor: open ? "var(--accent-border)" : "transparent",
               transition: "all 160ms ease",
               "&:hover": {
-                bgcolor: "#eef5ff",
-                color: "#1769e8",
-                borderColor: "#d7e7fb",
+                bgcolor: "var(--accent-soft)",
+                color: "var(--accent-strong)",
+                borderColor: "var(--accent-border)",
               },
             }}
           >
             <MoreVertIcon />
           </IconButton>
+
           <Menu
             anchorEl={anchorEl}
             open={open}
@@ -526,9 +641,11 @@ export default function Post({
                   minWidth: 220,
                   mt: 0.75,
                   p: 0.75,
-                  border: "1px solid #e3eaf3",
+                  border: "1px solid var(--border)",
                   borderRadius: "16px",
                   boxShadow: "0 12px 32px rgb(15 23 42 / 0.16)",
+                  bgcolor: "var(--surface)",
+                  color: "var(--text-primary)",
                   "& .MuiList-root": { p: 0 },
                 },
               },
@@ -542,24 +659,34 @@ export default function Post({
                 gap: 1.5,
                 px: 1.5,
                 borderRadius: "11px",
-                color: "#26354b",
+                color: "var(--text-primary)",
                 fontSize: 14,
                 fontWeight: 650,
-                "&:hover": { bgcolor: "#f1f6fd" },
+                "&:hover": { bgcolor: "var(--surface-hover)" },
               }}
             >
               {isBookmarked ? (
-                <BookmarkIcon sx={{ color: "#1769e8", fontSize: 20 }} />
+                <BookmarkIcon
+                  sx={{ color: "var(--accent-strong)", fontSize: 20 }}
+                />
               ) : (
                 <BookmarkBorderOutlinedIcon
-                  sx={{ color: "#64748b", fontSize: 20 }}
+                  sx={{ color: "var(--text-secondary)", fontSize: 20 }}
                 />
               )}
               {isBookmarked ? "Unsave post" : "Save post"}
             </MenuItem>
+
             {postUserId === currentUserId && (
               <>
-                <Box sx={{ mx: 1, my: 0.5, borderTop: "1px solid #edf1f6" }} />
+                <Box
+                  sx={{
+                    mx: 1,
+                    my: 0.5,
+                    borderTop: "1px solid var(--border)",
+                  }}
+                />
+
                 <MenuItem
                   onClick={() => {
                     setOpenEditModal(true);
@@ -570,15 +697,18 @@ export default function Post({
                     gap: 1.5,
                     px: 1.5,
                     borderRadius: "11px",
-                    color: "#26354b",
+                    color: "var(--text-primary)",
                     fontSize: 14,
                     fontWeight: 650,
-                    "&:hover": { bgcolor: "#f1f6fd" },
+                    "&:hover": { bgcolor: "var(--surface-hover)" },
                   }}
                 >
-                  <EditOutlinedIcon sx={{ color: "#64748b", fontSize: 20 }} />
+                  <EditOutlinedIcon
+                    sx={{ color: "var(--text-secondary)", fontSize: 20 }}
+                  />
                   Edit post
                 </MenuItem>
+
                 <MenuItem
                   onClick={() => {
                     handleDelete(postdata._id);
@@ -589,10 +719,10 @@ export default function Post({
                     gap: 1.5,
                     px: 1.5,
                     borderRadius: "11px",
-                    color: "#c03636",
+                    color: "var(--danger-text)",
                     fontSize: 14,
                     fontWeight: 650,
-                    "&:hover": { bgcolor: "#fff1f1" },
+                    "&:hover": { bgcolor: "var(--danger-soft)" },
                   }}
                 >
                   <DeleteOutlineIcon sx={{ fontSize: 20 }} />
@@ -615,7 +745,7 @@ export default function Post({
       >
         <Typography
           sx={{
-            color: "#182237",
+            color: "var(--text-primary)",
             fontSize: 14,
             lineHeight: 1.55,
             whiteSpace: "pre-wrap",
@@ -623,6 +753,7 @@ export default function Post({
         >
           {postdata.body}
         </Typography>
+
         {sharedPostData && (
           <Box
             onClick={(event) => {
@@ -632,13 +763,13 @@ export default function Post({
             sx={{
               mt: 1.5,
               overflow: "hidden",
-              border: "1px solid #dce5f0",
+              border: "1px solid var(--border)",
               borderRadius: "16px",
-              bgcolor: "#f8fafc",
+              bgcolor: "var(--surface-subtle)",
               cursor: "pointer",
               transition: "border-color 150ms ease, box-shadow 150ms ease",
               "&:hover": {
-                borderColor: "#bfd8f7",
+                borderColor: "var(--accent-border)",
                 boxShadow: "0 4px 14px rgb(23 105 232 / 0.07)",
               },
             }}
@@ -667,28 +798,38 @@ export default function Post({
                   sx={{
                     width: 38,
                     height: 38,
-                    bgcolor: "#e7f2ff",
-                    color: "#1769e8",
+                    bgcolor: "var(--accent-soft)",
+                    color: "var(--accent-strong)",
                   }}
                 >
                   {!sharedAuthor?.photo && <PersonIcon sx={{ fontSize: 23 }} />}
                 </Avatar>
               </ButtonBase>
+
               <Box sx={{ minWidth: 0, flex: 1 }}>
                 <Typography
-                  sx={{ color: "#172033", fontSize: 13.5, fontWeight: 800 }}
+                  sx={{
+                    color: "var(--text-primary)",
+                    fontSize: 13.5,
+                    fontWeight: 800,
+                  }}
                   noWrap
                 >
                   {sharedAuthor?.name || "Original post"}
                 </Typography>
-                <Typography sx={{ color: "#71809a", fontSize: 11.5 }} noWrap>
+
+                <Typography
+                  sx={{ color: "var(--text-muted)", fontSize: 11.5 }}
+                  noWrap
+                >
                   @{(sharedAuthor?.username || "user").replace(/^@/, "")}
                 </Typography>
               </Box>
+
               <Typography
                 sx={{
                   flexShrink: 0,
-                  color: "#1769e8",
+                  color: "var(--accent-strong)",
                   fontSize: 12,
                   fontWeight: 750,
                 }}
@@ -696,12 +837,13 @@ export default function Post({
                 Original post ↗
               </Typography>
             </Box>
+
             {sharedPostData.body && (
               <Typography
                 sx={{
                   px: 1.5,
                   pb: 1.5,
-                  color: "#34445c",
+                  color: "var(--text-secondary)",
                   fontSize: 13.5,
                   lineHeight: 1.55,
                   whiteSpace: "pre-wrap",
@@ -710,6 +852,7 @@ export default function Post({
                 {sharedPostData.body}
               </Typography>
             )}
+
             {sharedPostData.image && sharedPostData.image !== "undefined" && (
               <Box
                 sx={{
@@ -718,7 +861,7 @@ export default function Post({
                   height: { xs: 300, sm: 420 },
                   display: "flex",
                   justifyContent: "center",
-                  bgcolor: "#0f1220",
+                  bgcolor: "var(--media-bg)",
                   overflow: "hidden",
                 }}
               >
@@ -749,7 +892,7 @@ export default function Post({
             height: { xs: 320, sm: 440, md: 560 },
             display: "flex",
             justifyContent: "center",
-            bgcolor: "#0f1220",
+            bgcolor: "var(--media-bg)",
             overflow: "hidden",
             cursor: "pointer",
           }}
@@ -785,45 +928,50 @@ export default function Post({
         >
           <Button
             onClick={openLikesDialog}
-            aria-label={`View ${postdata.likesCount ?? 0} people who liked this post`}
+            aria-label={`View ${postLikesCount} people who liked this post`}
             sx={{
               display: "inline-flex",
               alignItems: "center",
               gap: 1,
               p: 0,
               minWidth: 0,
-              color: "#64748b",
+              color: "var(--text-secondary)",
               textTransform: "none",
               fontWeight: 400,
-              "&:hover": { bgcolor: "transparent", color: "#40516c" },
+              "&:hover": {
+                bgcolor: "transparent",
+                color: "var(--text-secondary)",
+              },
             }}
           >
             <Box
               sx={{
                 display: "grid",
                 placeItems: "center",
-                width: 26,
-                height: 26,
+                width: 24,
+                height: 24,
                 borderRadius: "50%",
-                bgcolor: "#1877f2",
-                color: "#fff",
+                bgcolor: "#2563EB",
+                color: "#FFFFFF",
               }}
             >
-              <ThumbUpAltOutlinedIcon sx={{ fontSize: 16 }} />
+              <ThumbUpAltOutlinedIcon sx={{ fontSize: 15 }} />
             </Box>
+
             <Typography
               component="span"
               sx={{ fontSize: 13, color: "inherit" }}
             >
-              {postdata.likesCount ?? 0} likes
+              {postLikesCount} likes
             </Typography>
           </Button>
+
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
               gap: { xs: 1, sm: 2.5 },
-              color: "#64748b",
+              color: "var(--text-secondary)",
             }}
           >
             <Typography
@@ -837,16 +985,18 @@ export default function Post({
               <RepeatOutlinedIcon sx={{ fontSize: 17 }} />{" "}
               {postdata.sharesCount ?? 0} shares
             </Typography>
+
             <Typography sx={{ fontSize: 12, whiteSpace: "nowrap" }}>
               {commentCount} {commentCount === 1 ? "comment" : "comments"}
             </Typography>
+
             <Button
               onClick={() => handleSinglePost(postdata._id)}
               sx={{
                 px: 1,
                 py: 0.35,
                 minWidth: "auto",
-                color: "#0878ff",
+                color: "var(--accent-strong)",
                 fontWeight: 750,
                 fontSize: 12,
                 whiteSpace: "nowrap",
@@ -854,8 +1004,8 @@ export default function Post({
                 borderRadius: "8px",
                 transition: "background-color 150ms ease, color 150ms ease",
                 "&:hover": {
-                  bgcolor: "#e7f2ff",
-                  color: "#075fc7",
+                  bgcolor: "var(--accent-soft)",
+                  color: "var(--accent-strong)",
                 },
               }}
             >
@@ -863,7 +1013,8 @@ export default function Post({
             </Button>
           </Box>
         </Box>
-        <Divider />
+
+        <Divider sx={{ borderColor: "var(--border)" }} />
 
         <CardActions
           disableSpacing
@@ -880,31 +1031,37 @@ export default function Post({
             disabled={isLiking}
             sx={{
               minHeight: 40,
-              color: isPostLiked ? "#1877f2" : "#40516c",
+              color: isPostLiked ? "#3B82F6" : "var(--text-secondary)",
               fontSize: 13,
+              fontWeight: isPostLiked ? 700 : 500,
               textTransform: "none",
+              "&:hover": {
+                bgcolor: "rgba(59, 130, 246, 0.08)",
+              },
             }}
           >
             {isPostLiked ? "Liked" : "Like"}
           </Button>
+
           <Button
             startIcon={<CommentOutlinedIcon />}
             onClick={() => handleSinglePost(postdata._id)}
             sx={{
               minHeight: 40,
-              color: "#40516c",
+              color: "var(--text-secondary)",
               fontSize: 13,
               textTransform: "none",
             }}
           >
             Comment
           </Button>
+
           <Button
             startIcon={<ShareOutlinedIcon />}
             onClick={openShareDialog}
             sx={{
               minHeight: 40,
-              color: "#40516c",
+              color: "var(--text-secondary)",
               fontSize: 13,
               textTransform: "none",
             }}
@@ -919,8 +1076,8 @@ export default function Post({
               mx: { xs: -1.75, sm: -2.25 },
               px: { xs: 1.75, sm: 2.25 },
               py: 2,
-              bgcolor: "#f7f9fc",
-              borderTop: "1px solid #e4eaf2",
+              bgcolor: "var(--surface-subtle)",
+              borderTop: "1px solid var(--border)",
             }}
           >
             <Box
@@ -931,24 +1088,29 @@ export default function Post({
                 gap: 1,
                 p: 1.25,
                 mb: 2,
-                border: "1px solid #dce4ee",
+                border: "1px solid var(--border)",
                 borderRadius: "14px",
-                bgcolor: "#fff",
+                bgcolor: "var(--surface)",
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Typography
-                  sx={{ color: "#26354b", fontWeight: 750, fontSize: 14 }}
+                  sx={{
+                    color: "var(--text-primary)",
+                    fontWeight: 750,
+                    fontSize: 14,
+                  }}
                 >
                   Comments
                 </Typography>
+
                 <Box
                   sx={{
                     px: 1,
                     py: 0.3,
                     borderRadius: "999px",
-                    bgcolor: "#e7f2ff",
-                    color: "#1769e8",
+                    bgcolor: "var(--accent-soft)",
+                    color: "var(--accent-strong)",
                     fontSize: 12,
                     fontWeight: 750,
                   }}
@@ -956,6 +1118,7 @@ export default function Post({
                   {commentCount}
                 </Box>
               </Box>
+
               <Select
                 size="small"
                 value={commentSort}
@@ -967,9 +1130,31 @@ export default function Post({
                   height: 38,
                   minWidth: 140,
                   borderRadius: "10px",
-                  bgcolor: "#f8fafc",
+                  bgcolor: "var(--surface-subtle)",
+                  color: "var(--text-primary)",
                   fontSize: 12,
                   fontWeight: 650,
+                  "& .MuiSelect-icon": {
+                    color: "var(--text-secondary)",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "var(--border)",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "var(--border-strong)",
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: "var(--surface)",
+                      color: "var(--text-primary)",
+                      border: "1px solid var(--border)",
+                      "& .MuiMenuItem-root:hover": {
+                        bgcolor: "var(--surface-hover)",
+                      },
+                    },
+                  },
                 }}
               >
                 <MenuItem value="relevant">Most relevant</MenuItem>
@@ -987,13 +1172,15 @@ export default function Post({
                   gap: 1.25,
                   minHeight: 82,
                   mb: 2,
-                  border: "1px solid #dce4ee",
+                  border: "1px solid var(--border)",
                   borderRadius: "14px",
-                  bgcolor: "#fff",
+                  bgcolor: "var(--surface)",
                 }}
               >
                 <CircularProgress size={20} thickness={4} />
-                <Typography sx={{ color: "#64748b", fontSize: 13 }}>
+                <Typography
+                  sx={{ color: "var(--text-secondary)", fontSize: 13 }}
+                >
                   Loading comments
                 </Typography>
               </Box>
@@ -1007,27 +1194,41 @@ export default function Post({
                   gap: 0.5,
                   p: 2.5,
                   mb: 2,
-                  border: "1px solid #f0dada",
+                  border: "1px solid var(--danger-border)",
                   borderRadius: "14px",
-                  bgcolor: "#fffafa",
+                  bgcolor: "var(--danger-soft)",
                   textAlign: "center",
                 }}
               >
-                <ErrorOutlineRounded sx={{ color: "#d14343", fontSize: 26 }} />
+                <ErrorOutlineRounded
+                  sx={{ color: "var(--danger-text)", fontSize: 26 }}
+                />
+
                 <Typography
-                  sx={{ color: "#26354b", fontSize: 13, fontWeight: 800 }}
+                  sx={{
+                    color: "var(--text-primary)",
+                    fontSize: 13,
+                    fontWeight: 800,
+                  }}
                 >
                   Comments couldn’t load
                 </Typography>
-                <Typography sx={{ color: "#71809a", fontSize: 12.5 }}>
+
+                <Typography sx={{ color: "var(--text-muted)", fontSize: 12.5 }}>
                   {commentsError}
                 </Typography>
+
                 <Button
                   size="small"
                   startIcon={<RefreshRounded />}
                   onClick={loadCommentsPage}
                   disabled={isLoadingComments}
-                  sx={{ mt: 0.5, fontWeight: 750, textTransform: "none" }}
+                  sx={{
+                    mt: 0.5,
+                    color: "var(--accent-strong)",
+                    fontWeight: 750,
+                    textTransform: "none",
+                  }}
                 >
                   Try again
                 </Button>
@@ -1044,18 +1245,24 @@ export default function Post({
                     currentUserPhoto={currentUserPhoto}
                   />
                 ))}
+
                 {commentsError && (
                   <Box
                     role="alert"
                     sx={{
                       mt: 1,
                       p: 1.25,
-                      border: "1px solid #f0dada",
+                      border: "1px solid var(--danger-border)",
                       borderRadius: "12px",
-                      bgcolor: "#fffafa",
+                      bgcolor: "var(--danger-soft)",
                     }}
                   >
-                    <Typography sx={{ color: "#a53b42", fontSize: 12.5 }}>
+                    <Typography
+                      sx={{
+                        color: "var(--danger-text)",
+                        fontSize: 12.5,
+                      }}
+                    >
                       {commentsError}
                     </Typography>
                   </Box>
@@ -1065,7 +1272,7 @@ export default function Post({
               <Typography
                 sx={{
                   py: 3,
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   fontSize: 12,
                   textAlign: "center",
                 }}
@@ -1093,11 +1300,15 @@ export default function Post({
                   sx={{
                     mb: 2,
                     minHeight: 40,
-                    borderColor: "#d7e2ef",
+                    borderColor: "var(--border)",
                     borderRadius: "12px",
-                    color: "#40516c",
+                    color: "var(--text-secondary)",
                     fontWeight: 750,
                     textTransform: "none",
+                    "&:hover": {
+                      borderColor: "var(--border-strong)",
+                      bgcolor: "var(--surface-hover)",
+                    },
                   }}
                 >
                   {isLoadingComments
@@ -1116,20 +1327,21 @@ export default function Post({
                   width: 40,
                   height: 40,
                   mt: 0.25,
-                  bgcolor: "#e7f2ff",
-                  color: "#1769e8",
+                  bgcolor: "var(--accent-soft)",
+                  color: "var(--accent-strong)",
                 }}
               >
                 {!currentUserPhoto && <PersonIcon />}
               </Avatar>
+
               <Box
                 sx={{
                   flex: 1,
                   minWidth: 0,
                   p: { xs: 1.25, sm: 1.75 },
-                  border: "1px solid #dce4ee",
+                  border: "1px solid var(--border)",
                   borderRadius: "22px",
-                  bgcolor: "#eef1f5",
+                  bgcolor: "var(--surface-subtle)",
                 }}
               >
                 <TextField
@@ -1145,16 +1357,21 @@ export default function Post({
                     "& .MuiOutlinedInput-root": {
                       p: 0,
                       bgcolor: "transparent",
+                      color: "var(--text-primary)",
                       borderRadius: 0,
                       fontSize: 14,
                       "& fieldset": { border: "none" },
                     },
+                    "html[data-theme='dark'] & .MuiOutlinedInput-root": {
+                      bgcolor: "transparent !important",
+                    },
                     "& .MuiInputBase-input::placeholder": {
-                      color: "#71809a",
+                      color: "var(--text-muted)",
                       opacity: 1,
                     },
                   }}
                 />
+
                 {commentImagePreview && (
                   <Box
                     sx={{
@@ -1163,9 +1380,9 @@ export default function Post({
                       maxWidth: "100%",
                       mt: 1.25,
                       p: 0.5,
-                      border: "1px solid #dce4ee",
+                      border: "1px solid var(--border)",
                       borderRadius: "13px",
-                      bgcolor: "#fff",
+                      bgcolor: "var(--surface)",
                     }}
                   >
                     <Image
@@ -1184,6 +1401,7 @@ export default function Post({
                         borderRadius: 10,
                       }}
                     />
+
                     <IconButton
                       aria-label="Remove attached image"
                       onClick={() => {
@@ -1198,16 +1416,21 @@ export default function Post({
                         right: 7,
                         width: 27,
                         height: 27,
-                        bgcolor: "rgb(255 255 255 / 94%)",
-                        color: "#40516c",
+                        bgcolor: "var(--surface)",
+                        color: "var(--text-secondary)",
+                        border: "1px solid var(--border)",
                         boxShadow: "0 1px 5px rgb(15 23 42 / 0.2)",
-                        "&:hover": { bgcolor: "#fff", color: "#c43c48" },
+                        "&:hover": {
+                          bgcolor: "var(--surface-hover)",
+                          color: "var(--danger-text)",
+                        },
                       }}
                     >
                       <CloseRoundedIcon sx={{ fontSize: 17 }} />
                     </IconButton>
                   </Box>
                 )}
+
                 <Box
                   sx={{
                     display: "flex",
@@ -1223,7 +1446,9 @@ export default function Post({
                       disabled={isSubmittingComment}
                       size="small"
                       sx={{
-                        color: commentImage ? "#1769e8" : "#64748b",
+                        color: commentImage
+                          ? "var(--accent-strong)"
+                          : "var(--text-secondary)",
                         width: 34,
                         height: 34,
                       }}
@@ -1236,6 +1461,7 @@ export default function Post({
                         onChange={handleCommentImageChange}
                       />
                     </IconButton>
+
                     <IconButton
                       aria-label="Add an emoji"
                       aria-haspopup="dialog"
@@ -1244,10 +1470,15 @@ export default function Post({
                         setCommentEmojiAnchor(event.currentTarget)
                       }
                       size="small"
-                      sx={{ color: "#64748b", width: 34, height: 34 }}
+                      sx={{
+                        color: "var(--text-secondary)",
+                        width: 34,
+                        height: 34,
+                      }}
                     >
                       <SentimentSatisfiedOutlinedIcon fontSize="small" />
                     </IconButton>
+
                     <Popover
                       open={Boolean(commentEmojiAnchor)}
                       anchorEl={commentEmojiAnchor}
@@ -1261,8 +1492,10 @@ export default function Post({
                         paper: {
                           sx: {
                             p: 0,
+                            border: "1px solid var(--border)",
                             borderRadius: "14px",
                             overflow: "hidden",
+                            bgcolor: "var(--surface)",
                           },
                         },
                       }}
@@ -1270,7 +1503,7 @@ export default function Post({
                       <EmojiPicker
                         width={320}
                         height={400}
-                        colorScheme="light"
+                        colorScheme={isDarkMode ? "dark" : "light"}
                         previewConfig={{ showPreview: false }}
                         onEmojiClick={(emojiData) => {
                           setCommentText(
@@ -1281,6 +1514,7 @@ export default function Post({
                       />
                     </Popover>
                   </Box>
+
                   <IconButton
                     aria-label={
                       isSubmittingComment ? "Sending comment" : "Send comment"
@@ -1291,11 +1525,20 @@ export default function Post({
                       width: 44,
                       height: 44,
                       flexShrink: 0,
-                      bgcolor: "#70aafa",
+                      bgcolor: "var(--accent-strong)",
                       color: "#fff",
                       boxShadow: "0 2px 5px rgb(23 105 232 / 0.2)",
-                      "&:hover": { bgcolor: "#4d91ee" },
-                      "&.Mui-disabled": { bgcolor: "#d7e6f9", color: "#fff" },
+                      "&:hover": {
+                        bgcolor: "var(--accent-strong)",
+                        filter: "brightness(0.92)",
+                      },
+                      "&.Mui-disabled": {
+                        bgcolor: "var(--accent-disabled)",
+                        color: "var(--text-muted)",
+                      },
+                      "html[data-theme='dark'] &": {
+                        color: "#172033",
+                      },
                     }}
                   >
                     {isSubmittingComment ? (
@@ -1313,15 +1556,15 @@ export default function Post({
             sx={{
               mb: 2,
               p: { xs: 1.25, sm: 1.5 },
-              border: "1px solid #dce4ee",
+              border: "1px solid var(--border)",
               borderRadius: "18px",
-              bgcolor: "#f8fafc",
+              bgcolor: "var(--surface-subtle)",
             }}
           >
             <Typography
               sx={{
                 mb: 1,
-                color: "#64748b",
+                color: "var(--text-secondary)",
                 fontSize: 11,
                 fontWeight: 750,
                 textTransform: "uppercase",
@@ -1329,6 +1572,7 @@ export default function Post({
             >
               Top comment
             </Typography>
+
             <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
               <Avatar
                 src={topComment.commentCreator.photo || undefined}
@@ -1336,36 +1580,43 @@ export default function Post({
                 sx={{
                   width: 34,
                   height: 34,
-                  bgcolor: "#e7f2ff",
-                  color: "#1769e8",
+                  bgcolor: "var(--accent-soft)",
+                  color: "var(--accent-strong)",
                 }}
               >
                 {!topComment.commentCreator.photo && <PersonIcon />}
               </Avatar>
+
               <Box
                 sx={{
                   flex: 1,
                   minWidth: 0,
                   p: 1.25,
                   borderRadius: "18px",
-                  bgcolor: "#fff",
+                  bgcolor: "var(--surface)",
                 }}
               >
                 <Typography
-                  sx={{ color: "#182237", fontSize: 12, fontWeight: 750 }}
+                  sx={{
+                    color: "var(--text-primary)",
+                    fontSize: 12,
+                    fontWeight: 750,
+                  }}
                 >
                   {topComment.commentCreator.name || "User"}
                 </Typography>
+
                 <Typography
                   sx={{
                     mt: 0.4,
-                    color: "#34445c",
+                    color: "var(--text-secondary)",
                     fontSize: 14,
                     overflowWrap: "anywhere",
                   }}
                 >
                   {topComment.content}
                 </Typography>
+
                 {topComment.image && topComment.image !== "undefined" && (
                   <Image
                     src={topComment.image}
@@ -1387,20 +1638,21 @@ export default function Post({
                 )}
               </Box>
             </Box>
+
             {commentCount > 1 && (
               <Button
                 onClick={() => handleSinglePost(postdata._id)}
                 sx={{
                   mt: 1,
                   px: 0,
-                  color: "#0878ff",
+                  color: "var(--accent-strong)",
                   fontWeight: 750,
                   fontSize: 13,
                   textTransform: "none",
                   textDecoration: "none",
                   "&:hover": {
                     bgcolor: "transparent",
-                    color: "#075fc7",
+                    color: "var(--accent-strong)",
                     textDecoration: "underline",
                     textUnderlineOffset: "3px",
                   },
@@ -1413,6 +1665,7 @@ export default function Post({
         ) : null}
       </Box>
 
+      {/* Likes Dialog */}
       <Dialog
         open={likesDialogOpen}
         onClose={() => setLikesDialogOpen(false)}
@@ -1420,6 +1673,7 @@ export default function Post({
         maxWidth="sm"
         PaperProps={{
           sx: {
+            ...dialogPaperSx,
             m: 2,
             width: "calc(100% - 32px)",
             maxWidth: 480,
@@ -1438,27 +1692,45 @@ export default function Post({
             gap: 2,
             px: { xs: 2, sm: 3 },
             py: 2,
-            borderBottom: "1px solid #e2e8f0",
+            color: "var(--text-primary)",
+            borderBottom: "1px solid var(--border)",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-            <PeopleAltOutlinedIcon sx={{ color: "#1877f2", fontSize: 25 }} />
+            <PeopleAltOutlinedIcon
+              sx={{ color: "var(--accent-strong)", fontSize: 25 }}
+            />
             <Typography
               component="span"
-              sx={{ color: "#182237", fontSize: 18, fontWeight: 800 }}
+              sx={{
+                color: "var(--text-primary)",
+                fontSize: 18,
+                fontWeight: 800,
+              }}
             >
               People who reacted
             </Typography>
           </Box>
+
           <IconButton
             aria-label="Close likes dialog"
             onClick={() => setLikesDialogOpen(false)}
             size="small"
+            sx={{ color: "var(--text-secondary)" }}
           >
             <CloseRoundedIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 0, flex: 1, overflowY: "auto" }}>
+
+        <DialogContent
+          sx={{
+            p: 0,
+            flex: 1,
+            overflowY: "auto",
+            bgcolor: "var(--surface)",
+            color: "var(--text-primary)",
+          }}
+        >
           {likesLoading && likedUsers.length === 0 ? (
             <Box sx={{ display: "grid", placeItems: "center", minHeight: 240 }}>
               <CircularProgress size={30} />
@@ -1473,15 +1745,23 @@ export default function Post({
                 px: 3,
               }}
             >
-              <Typography color="text.secondary" textAlign="center">
+              <Typography
+                sx={{ color: "var(--text-secondary)" }}
+                textAlign="center"
+              >
                 {likesError}
               </Typography>
+
               <Button
                 onClick={() =>
                   dispatch(
                     getPostLikes({ postId: postdata._id, page: 1, limit: 20 }),
                   )
                 }
+                sx={{
+                  color: "var(--accent-strong)",
+                  textTransform: "none",
+                }}
               >
                 Try again
               </Button>
@@ -1495,7 +1775,9 @@ export default function Post({
                 px: 3,
               }}
             >
-              <Typography color="text.secondary">No reactions yet</Typography>
+              <Typography sx={{ color: "var(--text-secondary)" }}>
+                No reactions yet
+              </Typography>
             </Box>
           ) : (
             <Box sx={{ py: 1 }}>
@@ -1518,9 +1800,9 @@ export default function Post({
                     textAlign: "left",
                     borderRadius: "14px",
                     transition: "background-color 150ms ease, color 150ms ease",
-                    "&:hover": { bgcolor: "#f1f6fd" },
+                    "&:hover": { bgcolor: "var(--surface-hover)" },
                     "&:focus-visible": {
-                      outline: "2px solid #1976ed",
+                      outline: "2px solid var(--accent-strong)",
                       outlineOffset: "-2px",
                     },
                   }}
@@ -1531,33 +1813,49 @@ export default function Post({
                     sx={{
                       width: 48,
                       height: 48,
-                      bgcolor: "#e7f2ff",
-                      color: "#1769e8",
+                      bgcolor: "var(--accent-soft)",
+                      color: "var(--accent-strong)",
                     }}
                   >
                     {!user.photo && <PersonIcon />}
                   </Avatar>
+
                   <Box sx={{ minWidth: 0 }}>
                     <Typography
-                      sx={{ color: "#182237", fontSize: 15, fontWeight: 750 }}
+                      sx={{
+                        color: "var(--text-primary)",
+                        fontSize: 15,
+                        fontWeight: 750,
+                      }}
                       noWrap
                     >
                       {user.name || "User"}
                     </Typography>
-                    <Typography sx={{ color: "#71809a", fontSize: 13 }} noWrap>
+
+                    <Typography
+                      sx={{ color: "var(--text-muted)", fontSize: 13 }}
+                      noWrap
+                    >
                       @{(user.username || "user").replace(/^@/, "")}
                     </Typography>
                   </Box>
                 </ButtonBase>
               ))}
+
               {likesLoading && (
                 <Box sx={{ display: "grid", placeItems: "center", py: 1.5 }}>
                   <CircularProgress size={24} />
                 </Box>
               )}
+
               {likesError && (
                 <Typography
-                  sx={{ px: 3, py: 1, color: "error.main", fontSize: 13 }}
+                  sx={{
+                    px: 3,
+                    py: 1,
+                    color: "var(--danger-text)",
+                    fontSize: 13,
+                  }}
                 >
                   {likesError}
                 </Typography>
@@ -1565,12 +1863,14 @@ export default function Post({
             </Box>
           )}
         </DialogContent>
+
         {(hasMoreLikes || (likesError && likedUsers.length > 0)) && (
           <DialogActions
             sx={{
               px: { xs: 2, sm: 3 },
               py: 1.5,
-              borderTop: "1px solid #e2e8f0",
+              borderTop: "1px solid var(--border)",
+              bgcolor: "var(--surface)",
             }}
           >
             <Button
@@ -1581,10 +1881,14 @@ export default function Post({
               sx={{
                 minHeight: 48,
                 borderRadius: "14px",
-                borderColor: "#cbd8e8",
-                color: "#40516c",
+                borderColor: "var(--border-strong)",
+                color: "var(--text-secondary)",
                 fontWeight: 700,
                 textTransform: "none",
+                "&:hover": {
+                  borderColor: "var(--accent-strong)",
+                  bgcolor: "var(--surface-hover)",
+                },
               }}
             >
               {likesLoading
@@ -1597,6 +1901,7 @@ export default function Post({
         )}
       </Dialog>
 
+      {/* Share Dialog */}
       <Dialog
         open={shareDialogOpen}
         onClose={closeShareDialog}
@@ -1604,8 +1909,8 @@ export default function Post({
         maxWidth="sm"
         PaperProps={{
           sx: {
+            ...dialogPaperSx,
             borderRadius: { xs: "18px", sm: "22px" },
-            border: "1px solid #e1e8f1",
             boxShadow: "0 24px 70px rgb(15 23 42 / 0.24)",
             overflow: "hidden",
           },
@@ -1618,10 +1923,10 @@ export default function Post({
             justifyContent: "space-between",
             px: { xs: 2, sm: 2.5 },
             py: 1.75,
-            color: "#172033",
+            color: "var(--text-primary)",
             fontSize: 19,
             fontWeight: 850,
-            borderBottom: "1px solid #e7edf5",
+            borderBottom: "1px solid var(--border)",
           }}
         >
           Share post
@@ -1630,12 +1935,20 @@ export default function Post({
             disabled={isSharing}
             aria-label="Close share dialog"
             size="small"
-            sx={{ color: "#64748b" }}
+            sx={{ color: "var(--text-secondary)" }}
           >
             <CloseRoundedIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: { xs: 2, sm: 2.5 }, display: "grid", gap: 2 }}>
+
+        <DialogContent
+          sx={{
+            p: { xs: 2, sm: 2.5 },
+            display: "grid",
+            gap: 2,
+            bgcolor: "var(--surface)",
+          }}
+        >
           <TextField
             fullWidth
             multiline
@@ -1649,15 +1962,13 @@ export default function Post({
             }
             inputProps={{ "aria-label": "Add a message to your shared post" }}
             sx={{
+              ...dialogTextFieldSx,
               mt: 0.5,
               "& .MuiOutlinedInput-root": {
+                ...dialogTextFieldSx["& .MuiOutlinedInput-root"],
                 alignItems: "flex-start",
                 borderRadius: "15px",
-                bgcolor: "#fff",
                 fontSize: 14,
-                "& fieldset": { borderColor: "#d6e0ec" },
-                "&:hover fieldset": { borderColor: "#a9bfd9" },
-                "&.Mui-focused fieldset": { borderColor: "#438af0" },
               },
             }}
           />
@@ -1666,9 +1977,10 @@ export default function Post({
             elevation={0}
             sx={{
               p: { xs: 1.5, sm: 1.75 },
-              border: "1px solid #e1e8f1",
+              border: "1px solid var(--border)",
               borderRadius: "17px",
-              bgcolor: "#f8fafc",
+              bgcolor: "var(--surface-subtle)",
+              color: "var(--text-primary)",
             }}
           >
             <Box
@@ -1680,29 +1992,39 @@ export default function Post({
                 sx={{
                   width: 40,
                   height: 40,
-                  bgcolor: "#e7f2ff",
-                  color: "#1769e8",
+                  bgcolor: "var(--accent-soft)",
+                  color: "var(--accent-strong)",
                 }}
               >
                 {!userPhoto && <PersonIcon />}
               </Avatar>
+
               <Box sx={{ minWidth: 0 }}>
                 <Typography
-                  sx={{ color: "#172033", fontSize: 14, fontWeight: 800 }}
+                  sx={{
+                    color: "var(--text-primary)",
+                    fontSize: 14,
+                    fontWeight: 800,
+                  }}
                   noWrap
                 >
                   {postName}
                 </Typography>
-                <Typography sx={{ color: "#71809a", fontSize: 12 }} noWrap>
+
+                <Typography
+                  sx={{ color: "var(--text-muted)", fontSize: 12 }}
+                  noWrap
+                >
                   {postUsername}
                 </Typography>
               </Box>
             </Box>
+
             {postdata.body && (
               <Typography
                 sx={{
                   mb: postdata.image ? 1.25 : 0,
-                  color: "#34445c",
+                  color: "var(--text-secondary)",
                   fontSize: 14,
                   lineHeight: 1.55,
                   whiteSpace: "pre-wrap",
@@ -1712,6 +2034,7 @@ export default function Post({
                 {postdata.body}
               </Typography>
             )}
+
             {postdata.image && postdata.image !== "undefined" && (
               <Box
                 sx={{
@@ -1720,7 +2043,7 @@ export default function Post({
                   maxHeight: 330,
                   overflow: "hidden",
                   borderRadius: "12px",
-                  bgcolor: "#e9eef5",
+                  bgcolor: "var(--media-bg)",
                 }}
               >
                 <Image
@@ -1740,11 +2063,13 @@ export default function Post({
             )}
           </Paper>
         </DialogContent>
+
         <DialogActions
           sx={{
             px: { xs: 2, sm: 2.5 },
             py: 1.75,
-            borderTop: "1px solid #e7edf5",
+            borderTop: "1px solid var(--border)",
+            bgcolor: "var(--surface)",
             gap: 1,
           }}
         >
@@ -1754,15 +2079,19 @@ export default function Post({
             sx={{
               minHeight: 42,
               px: 2,
-              border: "1px solid #d5dfeb",
+              border: "1px solid var(--border)",
               borderRadius: "11px",
-              color: "#40516c",
+              color: "var(--text-secondary)",
               fontWeight: 750,
               textTransform: "none",
+              "&:hover": {
+                bgcolor: "var(--surface-hover)",
+              },
             }}
           >
             Cancel
           </Button>
+
           <Button
             variant="contained"
             onClick={handleShare}
@@ -1775,14 +2104,10 @@ export default function Post({
               )
             }
             sx={{
+              ...primaryButtonSx,
               minHeight: 42,
               px: 2.25,
               borderRadius: "11px",
-              bgcolor: "#1877f2",
-              fontWeight: 800,
-              textTransform: "none",
-              boxShadow: "none",
-              "&:hover": { bgcolor: "#1267d8", boxShadow: "none" },
             }}
           >
             {isSharing ? "Sharing…" : "Share now"}
@@ -1790,14 +2115,36 @@ export default function Post({
         </DialogActions>
       </Dialog>
 
+      {/* Edit Post Dialog */}
       <Dialog
         open={openEditModal}
         onClose={() => setOpenEditModal(false)}
         fullWidth
         maxWidth="sm"
+        PaperProps={{
+          sx: {
+            ...dialogPaperSx,
+            borderRadius: { xs: "18px", sm: "22px" },
+            overflow: "hidden",
+          },
+        }}
       >
-        <DialogTitle>Edit Post</DialogTitle>
-        <DialogContent>
+        <DialogTitle
+          sx={{
+            color: "var(--text-primary)",
+            fontWeight: 800,
+            borderBottom: "1px solid var(--border)",
+          }}
+        >
+          Edit Post
+        </DialogTitle>
+
+        <DialogContent
+          sx={{
+            bgcolor: "var(--surface)",
+            color: "var(--text-primary)",
+          }}
+        >
           <TextField
             fullWidth
             multiline
@@ -1805,8 +2152,12 @@ export default function Post({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="What's on your mind?"
-            sx={{ mt: 2 }}
+            sx={{
+              ...dialogTextFieldSx,
+              mt: 2,
+            }}
           />
+
           {preview || postdata.image ? (
             <Box
               sx={{
@@ -1815,6 +2166,7 @@ export default function Post({
                 aspectRatio: "1 / 1",
                 borderRadius: 2,
                 overflow: "hidden",
+                bgcolor: "var(--media-bg)",
               }}
             >
               <Image
@@ -1825,8 +2177,25 @@ export default function Post({
               />
             </Box>
           ) : null}
-          <Button component="label" variant="outlined" fullWidth sx={{ mt: 3 }}>
+
+          <Button
+            component="label"
+            variant="outlined"
+            fullWidth
+            sx={{
+              mt: 3,
+              minHeight: 42,
+              color: "var(--accent-strong)",
+              borderColor: "var(--border-strong)",
+              textTransform: "none",
+              "&:hover": {
+                borderColor: "var(--accent-strong)",
+                bgcolor: "var(--surface-hover)",
+              },
+            }}
+          >
             {preview || postdata.image ? "Change Image" : "Add Image"}
+
             <input
               hidden
               type="file"
@@ -1841,7 +2210,15 @@ export default function Post({
             />
           </Button>
         </DialogContent>
-        <DialogActions>
+
+        <DialogActions
+          sx={{
+            px: 2.5,
+            py: 1.75,
+            borderTop: "1px solid var(--border)",
+            bgcolor: "var(--surface)",
+          }}
+        >
           <Button
             onClick={() => {
               setOpenEditModal(false);
@@ -1849,10 +2226,24 @@ export default function Post({
               setImage(null);
               setContent(postdata.body);
             }}
+            sx={{
+              color: "var(--text-secondary)",
+              textTransform: "none",
+              fontWeight: 700,
+            }}
           >
             Cancel
           </Button>
-          <Button variant="contained" onClick={handleUpdate}>
+
+          <Button
+            variant="contained"
+            onClick={handleUpdate}
+            sx={{
+              ...primaryButtonSx,
+              px: 2.5,
+              borderRadius: "10px",
+            }}
+          >
             Save Changes
           </Button>
         </DialogActions>

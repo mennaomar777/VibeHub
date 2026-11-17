@@ -6,16 +6,16 @@ export default function Loading() {
     <Box
       role="status"
       aria-label="Loading VibeHub"
-      sx={{ minHeight: "calc(100vh - 60px)", bgcolor: "#f0f2f5", py: { xs: 3, md: 5 } }}
+      sx={{ minHeight: "calc(100vh - 60px)", bgcolor: "var(--app-bg)", py: { xs: 3, md: 5 } }}
     >
       <Container maxWidth="sm">
         <Paper
           elevation={0}
           sx={{
             p: { xs: 2.5, sm: 3.5 },
-            border: "1px solid #e1e8f1",
+            border: "1px solid var(--border)",
             borderRadius: "22px",
-            bgcolor: "#fff",
+            bgcolor: "var(--surface)",
             boxShadow: "0 8px 24px rgb(24 34 55 / 0.06)",
           }}
         >
@@ -24,10 +24,10 @@ export default function Loading() {
               <HubOutlined />
             </Box>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ color: "#172033", fontSize: 16, fontWeight: 800 }}>
+              <Typography sx={{ color: "var(--text-primary)", fontSize: 16, fontWeight: 800 }}>
                 VibeHub
               </Typography>
-              <Typography sx={{ color: "#71809a", fontSize: 13 }}>
+              <Typography sx={{ color: "var(--text-muted)", fontSize: 13 }}>
                 Getting your page ready
               </Typography>
             </Box>

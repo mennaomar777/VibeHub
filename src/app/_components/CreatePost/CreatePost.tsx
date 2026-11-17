@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Avatar,
   Box,
@@ -35,12 +35,35 @@ export default function CreatePost({
   const [imgSrc, setImgSrc] = useState("");
   const [isPosting, setIsPosting] = useState(false);
   const [emojiAnchor, setEmojiAnchor] = useState<HTMLElement | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const postTextRef = useRef<HTMLTextAreaElement>(null);
   const selectionRef = useRef({ start: 0, end: 0 });
+
   const { userData } = useSelector((state: stateType) => state.profile);
+
+  useEffect(() => {
+    const updateTheme = () => {
+      setIsDarkMode(
+        document.documentElement.getAttribute("data-theme") === "dark",
+      );
+    };
+
+    updateTheme();
+
+    const observer = new MutationObserver(updateTheme);
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   function saveTextSelection() {
     const textArea = postTextRef.current;
+
     if (textArea) {
       selectionRef.current = {
         start: textArea.selectionStart ?? 0,
@@ -51,23 +74,31 @@ export default function CreatePost({
 
   function insertEmoji(emoji: string) {
     const { start, end } = selectionRef.current;
+
     const nextBody = `${postBody.slice(0, start)}${emoji}${postBody.slice(end)}`;
     const nextCursor = start + emoji.length;
 
     setPostBody(nextBody);
     setEmojiAnchor(null);
+
     window.requestAnimationFrame(() => {
       postTextRef.current?.focus();
       postTextRef.current?.setSelectionRange(nextCursor, nextCursor);
-      selectionRef.current = { start: nextCursor, end: nextCursor };
+
+      selectionRef.current = {
+        start: nextCursor,
+        end: nextCursor,
+      };
     });
   }
 
   function handlePostImage(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
+
     if (!file) return;
 
     if (imgSrc) URL.revokeObjectURL(imgSrc);
+
     setImgPost(file);
     setImgSrc(URL.createObjectURL(file));
     event.target.value = "";
@@ -81,19 +112,25 @@ export default function CreatePost({
 
     const formData = new FormData();
     formData.append("body", postBody.trim());
+
     if (imgPost) formData.append("image", imgPost);
 
     setIsPosting(true);
+
     try {
       await axios.post("https://route-posts.routemisr.com/posts", formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
         },
       });
+
       toast.success("Post created successfully!");
+
       setPostBody("");
       setImgPost(null);
+
       if (imgSrc) URL.revokeObjectURL(imgSrc);
+
       setImgSrc("");
       onPostChange();
     } catch {
@@ -105,6 +142,7 @@ export default function CreatePost({
 
   function removeImage() {
     if (imgSrc) URL.revokeObjectURL(imgSrc);
+
     setImgPost(null);
     setImgSrc("");
   }
@@ -119,9 +157,10 @@ export default function CreatePost({
         maxWidth: "none",
         boxSizing: "border-box",
         p: { xs: 1.5, sm: 2 },
-        border: "1px solid #dce4ee",
+        border: "1px solid var(--border)",
         borderRadius: { xs: "16px", sm: "20px" },
-        bgcolor: "#fff",
+        bgcolor: "var(--surface)",
+        color: "var(--text-primary)",
         boxShadow: "0 2px 5px rgb(24 34 55 / 0.12)",
       }}
     >
@@ -129,14 +168,20 @@ export default function CreatePost({
         <Avatar
           src={userData?.photo || undefined}
           alt={userData?.name || "Your profile"}
-          sx={{ width: 44, height: 44, bgcolor: "#e7f2ff", color: "#1769e8" }}
+          sx={{
+            width: 44,
+            height: 44,
+            bgcolor: "var(--accent-soft)",
+            color: "var(--accent-strong)",
+          }}
         >
           {!userData?.photo && <PersonOutlineIcon sx={{ fontSize: 30 }} />}
         </Avatar>
+
         <Box sx={{ minWidth: 0 }}>
           <Typography
             sx={{
-              color: "#111827",
+              color: "var(--text-primary)",
               fontSize: 16,
               fontWeight: 800,
               lineHeight: 1.3,
@@ -144,6 +189,7 @@ export default function CreatePost({
           >
             {userData?.name || "Your name"}
           </Typography>
+
           <Box
             aria-label="Post audience: Public"
             sx={{
@@ -154,8 +200,8 @@ export default function CreatePost({
               px: 1.1,
               py: 0.45,
               borderRadius: "999px",
-              bgcolor: "#f0f4f8",
-              color: "#34445c",
+              bgcolor: "var(--surface-subtle)",
+              color: "var(--text-secondary)",
               fontSize: 12,
               fontWeight: 500,
             }}
@@ -176,6 +222,7 @@ export default function CreatePost({
         value={postBody}
         onChange={(event) => {
           setPostBody(event.target.value);
+
           selectionRef.current = {
             start: event.target.selectionStart ?? 0,
             end: event.target.selectionEnd ?? 0,
@@ -189,17 +236,28 @@ export default function CreatePost({
             minHeight: 132,
             p: { xs: 1.4, sm: 1.7 },
             borderRadius: "18px",
-            bgcolor: "#f8fafc",
-            color: "#1c293d",
+            bgcolor: "var(--surface-subtle)",
+            color: "var(--text-primary)",
             fontSize: { xs: 15, sm: 17 },
             lineHeight: 1.5,
-            "& textarea": { resize: "vertical" },
-            "& fieldset": { borderColor: "#dce4ee" },
-            "&:hover fieldset": { borderColor: "#c3d0df" },
-            "&.Mui-focused fieldset": { borderColor: "#8dbaff" },
+            "& textarea": {
+              resize: "vertical",
+            },
+            "& fieldset": {
+              borderColor: "var(--border)",
+            },
+            "&:hover fieldset": {
+              borderColor: "var(--border-strong)",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "var(--accent-strong)",
+            },
+          },
+          "& .MuiInputBase-input": {
+            color: "var(--text-primary)",
           },
           "& .MuiInputBase-input::placeholder": {
-            color: "#8b95a3",
+            color: "var(--text-muted)",
             opacity: 1,
           },
         }}
@@ -218,6 +276,7 @@ export default function CreatePost({
               objectFit: "contain",
             }}
           />
+
           <IconButton
             aria-label="Remove selected image"
             onClick={removeImage}
@@ -225,8 +284,14 @@ export default function CreatePost({
               position: "absolute",
               top: 8,
               right: 8,
-              bgcolor: "#fff",
+              bgcolor: "var(--surface)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border)",
               boxShadow: 1,
+              "&:hover": {
+                bgcolor: "var(--surface-hover)",
+                color: "var(--danger-text)",
+              },
             }}
           >
             <CancelIcon />
@@ -234,7 +299,7 @@ export default function CreatePost({
         </Box>
       )}
 
-      <Divider sx={{ mt: 1.75, borderColor: "#1f2937" }} />
+      <Divider sx={{ mt: 1.75, borderColor: "var(--border)" }} />
 
       <Box
         sx={{
@@ -247,7 +312,11 @@ export default function CreatePost({
         }}
       >
         <Box
-          sx={{ display: "flex", alignItems: "center", gap: { xs: 0, sm: 1 } }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: 0, sm: 1 },
+          }}
         >
           <Button
             component="label"
@@ -255,12 +324,18 @@ export default function CreatePost({
             sx={{
               minHeight: 38,
               px: { xs: 0.75, sm: 1.1 },
-              color: "#40516c",
+              color: "var(--text-secondary)",
               fontSize: { xs: 12, sm: 14 },
               fontWeight: 500,
               textTransform: "none",
               whiteSpace: "nowrap",
-              "& .MuiSvgIcon-root": { color: "#00a66c", fontSize: 20 },
+              "& .MuiSvgIcon-root": {
+                color: "var(--success-text)",
+                fontSize: 20,
+              },
+              "&:hover": {
+                bgcolor: "var(--surface-hover)",
+              },
             }}
           >
             Photo/video
@@ -271,6 +346,7 @@ export default function CreatePost({
               onChange={handlePostImage}
             />
           </Button>
+
           <Button
             startIcon={<SentimentSatisfiedOutlinedIcon />}
             aria-haspopup="dialog"
@@ -283,16 +359,23 @@ export default function CreatePost({
             sx={{
               minHeight: 38,
               px: { xs: 0.75, sm: 1.1 },
-              color: "#40516c",
+              color: "var(--text-secondary)",
               fontSize: { xs: 12, sm: 14 },
               fontWeight: 500,
               textTransform: "none",
               whiteSpace: "nowrap",
-              "& .MuiSvgIcon-root": { color: "#ff9800", fontSize: 20 },
+              "& .MuiSvgIcon-root": {
+                color: "#ff9800",
+                fontSize: 20,
+              },
+              "&:hover": {
+                bgcolor: "var(--surface-hover)",
+              },
             }}
           >
             Feeling/activity
           </Button>
+
           <Popover
             open={Boolean(emojiAnchor)}
             anchorEl={emojiAnchor}
@@ -305,8 +388,9 @@ export default function CreatePost({
                   mt: 1,
                   p: 0,
                   width: 360,
-                  border: "1px solid #dce4ee",
+                  border: "1px solid var(--border)",
                   borderRadius: "14px",
+                  bgcolor: "var(--surface)",
                   boxShadow: "0 8px 24px rgb(24 34 55 / 0.16)",
                   overflow: "hidden",
                 },
@@ -316,7 +400,7 @@ export default function CreatePost({
             <EmojiPicker
               width={360}
               height={480}
-              colorScheme="light"
+              colorScheme={isDarkMode ? "dark" : "light"}
               previewConfig={{ showPreview: false }}
               onEmojiClick={(emojiData) => insertEmoji(emojiData.emoji)}
             />
@@ -347,6 +431,21 @@ export default function CreatePost({
               bgcolor: "#70aafa",
               color: "#fff",
               opacity: 0.78,
+            },
+            "html[data-theme='dark'] &": {
+              bgcolor: "var(--accent-strong)",
+              color: "#172033",
+              boxShadow: "0 2px 8px rgb(0 0 0 / 0.2)",
+              "&:hover": {
+                bgcolor: "var(--accent-strong)",
+                filter: "brightness(0.92)",
+                boxShadow: "0 3px 10px rgb(0 0 0 / 0.25)",
+              },
+              "&.Mui-disabled": {
+                bgcolor: "var(--accent-disabled)",
+                color: "var(--text-muted)",
+                opacity: 1,
+              },
             },
           }}
         >

@@ -7,8 +7,8 @@ export default function Footer() {
       component="footer"
       sx={{
         mt: "auto",
-        bgcolor: "#fff",
-        borderTop: "1px solid #e5eaf2",
+        bgcolor: "var(--surface)",
+        borderTop: "1px solid var(--border)",
       }}
     >
       <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 2.25 } }}>
@@ -40,7 +40,7 @@ export default function Footer() {
             <Box>
               <Typography
                 sx={{
-                  color: "#172033",
+                  color: "var(--text-primary)",
                   fontSize: 14,
                   fontWeight: 800,
                   letterSpacing: "-.03em",
@@ -49,7 +49,7 @@ export default function Footer() {
               >
                 vibeHub
               </Typography>
-              <Typography sx={{ mt: 0.25, color: "#71809a", fontSize: 11 }}>
+              <Typography sx={{ mt: 0.25, color: "var(--text-muted)", fontSize: 11 }}>
                 Share what matters.
               </Typography>
             </Box>
@@ -57,7 +57,7 @@ export default function Footer() {
 
           <Typography
             component="small"
-            sx={{ color: "#71809a", fontSize: 12, textAlign: "center" }}
+            sx={{ color: "var(--text-muted)", fontSize: 12, textAlign: "center" }}
           >
             © {new Date().getFullYear()} VibeHub. All rights reserved.
           </Typography>

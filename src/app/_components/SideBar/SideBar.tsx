@@ -22,7 +22,11 @@ const items = [
     icon: <AutoAwesomeOutlined />,
     view: "myPosts" as const,
   },
-  { label: "Community", icon: <PublicOutlined />, view: "community" as const },
+  {
+    label: "Community",
+    icon: <PublicOutlined />,
+    view: "community" as const,
+  },
   {
     label: "Saved",
     icon: <BookmarkBorderOutlined />,
@@ -40,15 +44,17 @@ export default function SideBar({ activeView, onViewChange }: SideBarProps) {
         position: { lg: "sticky" },
         top: 104,
         p: 1.25,
-        border: "1px solid #dce4ee",
+        border: "1px solid var(--border)",
         borderRadius: "18px",
-        bgcolor: "#fff",
+        bgcolor: "var(--surface)",
+        color: "var(--text-primary)",
         boxShadow: "0 2px 5px #18223712",
       }}
     >
       <Box sx={{ display: "grid", gap: 0.35 }}>
         {items.map((item) => {
           const active = item.view === activeView;
+
           return (
             <Button
               key={item.label}
@@ -60,15 +66,28 @@ export default function SideBar({ activeView, onViewChange }: SideBarProps) {
                 minHeight: 46,
                 px: 1.5,
                 borderRadius: "13px",
-                color: active ? "#1769e8" : "#364761",
-                bgcolor: active ? "#e7f2ff" : "transparent",
+                color: active
+                  ? "var(--accent-strong)"
+                  : "var(--text-secondary)",
+                bgcolor: active ? "var(--accent-soft)" : "transparent",
                 fontSize: 14,
                 fontWeight: 700,
                 textTransform: "none",
-                "& .MuiSvgIcon-root": { fontSize: 20 },
-                "&:hover": { bgcolor: active ? "#e7f2ff" : "#f3f6fa" },
-                "&.Mui-disabled": { color: "#364761", opacity: 0.8 },
-                "& .MuiButton-startIcon": { mr: 1.25 },
+                "& .MuiSvgIcon-root": {
+                  fontSize: 20,
+                },
+                "&:hover": {
+                  bgcolor: active
+                    ? "var(--accent-soft)"
+                    : "var(--surface-hover)",
+                },
+                "&.Mui-disabled": {
+                  color: "var(--text-secondary)",
+                  opacity: 0.8,
+                },
+                "& .MuiButton-startIcon": {
+                  mr: 1.25,
+                },
               }}
             >
               {item.label}

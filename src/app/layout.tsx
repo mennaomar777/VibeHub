@@ -2,8 +2,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "@/theme";
+import ColorModeProvider from "./_components/ColorModeProvider";
 import Navbar from "./_components/navbar/Navbar";
 import { Provider } from "react-redux";
 import { store } from "@/lib/store";
@@ -32,7 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AppRouterCacheProvider>
-          <ThemeProvider theme={theme} disableTransitionOnChange>
+          <ColorModeProvider>
             <Provider store={store}>
               <Navbar />
               <main suppressHydrationWarning>{children}</main> <Footer />
@@ -42,7 +41,7 @@ export default function RootLayout({
                 containerStyle={{ top: 80 }}
               />
             </Provider>
-          </ThemeProvider>
+          </ColorModeProvider>
         </AppRouterCacheProvider>
       </body>
     </html>

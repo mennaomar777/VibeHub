@@ -24,6 +24,8 @@ import NotificationsNoneOutlined from "@mui/icons-material/NotificationsNoneOutl
 import PersonOutline from "@mui/icons-material/PersonOutline";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
 import LogoutOutlined from "@mui/icons-material/LogoutOutlined";
+import DarkModeOutlined from "@mui/icons-material/DarkModeOutlined";
+import LightModeOutlined from "@mui/icons-material/LightModeOutlined";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { jwtDecode } from "jwt-decode";
@@ -36,6 +38,7 @@ import {
   getUnreadCount,
   resetNotifications,
 } from "../../../lib/notificationSlice";
+import { useColorMode } from "../ColorModeProvider";
 const pages = ["Feed", "Profile"];
 
 function Navbar() {
@@ -50,6 +53,7 @@ function Navbar() {
   const pathname = usePathname();
   const dispatch = useDispatch<dispatchType>();
   const router = useRouter();
+  const { mode, toggleColorMode } = useColorMode();
   const { userData } = useSelector((state: stateType) => state.profile);
   const { unreadCount } = useSelector(
     (state: stateType) => state.notifications,
@@ -107,9 +111,9 @@ function Navbar() {
         position="fixed"
         elevation={0}
         sx={{
-          bgcolor: "rgb(255 255 255 / 94%)",
-          color: "#182237",
-          borderBottom: "1px solid #e5eaf2",
+          bgcolor: "var(--nav-bg)",
+          color: "var(--text-primary)",
+          borderBottom: "1px solid var(--border)",
           boxShadow: "0 4px 18px rgb(15 23 42 / 0.045)",
           backdropFilter: "blur(14px)",
         }}
@@ -145,8 +149,7 @@ function Navbar() {
                   placeItems: "center",
                   borderRadius: "11px",
                   color: "#fff",
-                  background:
-                    "linear-gradient(145deg, #1769e8 0%, #0b318f 100%)",
+                  background: "linear-gradient(145deg, #1769e8 0%, #0b318f 100%)",
                   boxShadow: "0 4px 10px rgb(23 105 232 / 0.22)",
                 }}
               >
@@ -157,7 +160,7 @@ function Navbar() {
                   fontSize: { xs: 16, sm: 19 },
                   fontWeight: 850,
                   letterSpacing: "-.04em",
-                  color: "#172033",
+                  color: "var(--text-primary)",
                 }}
               >
                 vibeHub
@@ -176,9 +179,9 @@ function Navbar() {
                   alignItems: "center",
                   gap: 0.5,
                   p: 0.35,
-                  border: "1px solid #e7edf5",
+                  border: "1px solid var(--border)",
                   borderRadius: "15px",
-                  bgcolor: "#f8fafd",
+                  bgcolor: "var(--surface-subtle)",
                 }}
               >
                 <Button
@@ -192,12 +195,12 @@ function Navbar() {
                     textTransform: "none",
                     fontSize: 14,
                     fontWeight: 750,
-                    color: isFeedActive ? "#1769e8" : "#4b5c75",
-                    bgcolor: isFeedActive ? "#eaf3ff" : "transparent",
+                    color: isFeedActive ? "#1769e8" : "var(--text-secondary)",
+                    bgcolor: isFeedActive ? "var(--accent-soft)" : "transparent",
                     boxShadow: "none",
                     transition: "background-color 140ms ease, color 140ms ease",
                     "&:hover": {
-                      bgcolor: isFeedActive ? "#eaf3ff" : "#edf2f8",
+                      bgcolor: isFeedActive ? "var(--accent-soft)" : "var(--surface-hover)",
                     },
                     "&:focus-visible": {
                       outline: "2px solid #70aafa",
@@ -220,12 +223,12 @@ function Navbar() {
                     textTransform: "none",
                     fontSize: 14,
                     fontWeight: 750,
-                    color: isProfileActive ? "#1769e8" : "#4b5c75",
-                    bgcolor: isProfileActive ? "#eaf3ff" : "transparent",
+                    color: isProfileActive ? "#1769e8" : "var(--text-secondary)",
+                    bgcolor: isProfileActive ? "var(--accent-soft)" : "transparent",
                     boxShadow: "none",
                     transition: "background-color 140ms ease, color 140ms ease",
                     "&:hover": {
-                      bgcolor: isProfileActive ? "#eaf3ff" : "#edf2f8",
+                      bgcolor: isProfileActive ? "var(--accent-soft)" : "var(--surface-hover)",
                     },
                     "&:focus-visible": {
                       outline: "2px solid #70aafa",
@@ -265,13 +268,11 @@ function Navbar() {
                     textTransform: "none",
                     fontSize: 14,
                     fontWeight: 750,
-                    color:
-                      pathname === "/notifications" ? "#1769e8" : "#4b5c75",
-                    bgcolor:
-                      pathname === "/notifications" ? "#eaf3ff" : "transparent",
+                    color: pathname === "/notifications" ? "#1769e8" : "var(--text-secondary)",
+                    bgcolor: pathname === "/notifications" ? "var(--accent-soft)" : "transparent",
                     boxShadow: "none",
                     "&:hover": {
-                      bgcolor: "#edf2f8",
+                      bgcolor: "var(--surface-hover)",
                     },
                     "& .MuiSvgIcon-root": { fontSize: 19 },
                   }}
@@ -299,10 +300,10 @@ function Navbar() {
                       display: { xs: "inline-flex", md: "none" },
                       width: 38,
                       height: 38,
-                      color: "#44546c",
-                      border: "1px solid #e3eaf2",
+                      color: "var(--text-secondary)",
+                      border: "1px solid var(--border)",
                       borderRadius: "12px",
-                      "&:hover": { bgcolor: "#f3f7fc" },
+                      "&:hover": { bgcolor: "var(--surface-hover)" },
                     }}
                   >
                     <MenuIcon />
@@ -315,17 +316,17 @@ function Navbar() {
                         minHeight: 40,
                         px: { xs: 0.75, sm: 1.2 },
                         gap: 0.9,
-                        border: "1px solid #e3eaf2",
+                        border: "1px solid var(--border)",
                         borderRadius: "30px",
-                        bgcolor: anchorElUser ? "#f1f6fd" : "#fff",
-                        color: "#26354b",
+                        bgcolor: anchorElUser ? "var(--surface-hover)" : "var(--surface)",
+                        color: "var(--text-primary)",
                         textTransform: "none",
                         fontSize: 14,
                         fontWeight: 600,
                         transition:
                           "background-color 140ms ease, border-color 140ms ease",
                         "&:hover": {
-                          bgcolor: "#f3f7fc",
+                          bgcolor: "var(--surface-hover)",
                           borderColor: "#cbd9e9",
                         },
                       }}
@@ -336,7 +337,7 @@ function Navbar() {
                         sx={{
                           width: 30,
                           height: 30,
-                          bgcolor: "#dce7fb",
+                          bgcolor: "var(--accent-soft)",
                           border: "2px solid #fff",
                           boxShadow: "0 0 0 1px #dce5f0",
                         }}
@@ -351,7 +352,7 @@ function Navbar() {
                         {userData?.name || "Your profile"}
                       </Typography>
                       <KeyboardArrowDown
-                        sx={{ fontSize: 19, color: "#71809a" }}
+                        sx={{ fontSize: 19, color: "var(--text-muted)" }}
                       />
                     </Button>
                   </Tooltip>
@@ -361,7 +362,7 @@ function Navbar() {
                   <Button
                     onClick={() => router.push("/")}
                     sx={{
-                      color: "#40516c",
+                      color: "var(--text-secondary)",
                       fontWeight: 700,
                       textTransform: "none",
                     }}
@@ -400,7 +401,7 @@ function Navbar() {
                   width: 176,
                   maxWidth: "calc(100vw - 24px)",
                   p: 0.75,
-                  border: "1px solid #e3eaf2",
+                  border: "1px solid var(--border)",
                   borderRadius: "15px",
                   boxShadow: "0 14px 34px rgb(15 23 42 / 0.18)",
                 },
@@ -408,18 +409,18 @@ function Navbar() {
                   minHeight: 46,
                   px: 1.25,
                   borderRadius: "10px",
-                  color: "#26354b",
+                  color: "var(--text-primary)",
                   fontSize: 14,
                   fontWeight: 650,
                   "&.Mui-selected": {
-                    bgcolor: "#eaf3ff",
+                    bgcolor: "var(--accent-soft)",
                     color: "#1769e8",
                   },
-                  "&.Mui-selected:hover, &:hover": { bgcolor: "#f1f6fd" },
+                  "&.Mui-selected:hover, &:hover": { bgcolor: "var(--surface-hover)" },
                 },
                 "& .MuiListItemIcon-root": {
                   minWidth: 34,
-                  color: "#71809a",
+                  color: "var(--text-muted)",
                 },
               }}
             >
@@ -465,19 +466,19 @@ function Navbar() {
                   mt: 1,
                   minWidth: 190,
                   p: 0.5,
-                  border: "1px solid #e3eaf2",
+                  border: "1px solid var(--border)",
                   borderRadius: "14px",
                   boxShadow: "0 12px 32px rgb(15 23 42 / 0.14)",
                   "& .MuiMenuItem-root": {
                     minHeight: 40,
                     borderRadius: "9px",
                     fontSize: 14,
-                    color: "#34445c",
-                    "&:hover": { bgcolor: "#f1f6fd" },
+                    color: "var(--text-secondary)",
+                    "&:hover": { bgcolor: "var(--surface-hover)" },
                   },
                   "& .MuiListItemIcon-root": {
                     minWidth: 34,
-                    color: "#71809a",
+                    color: "var(--text-muted)",
                   },
                 },
               }}
@@ -495,10 +496,25 @@ function Navbar() {
                 Settings
               </MenuItem>
               <MenuItem
+                onClick={() => {
+                  toggleColorMode();
+                  closeUserMenu();
+                }}
+              >
+                <ListItemIcon>
+                  {mode === "light" ? (
+                    <DarkModeOutlined fontSize="small" />
+                  ) : (
+                    <LightModeOutlined fontSize="small" />
+                  )}
+                </ListItemIcon>
+                {mode === "light" ? "Dark mode" : "Light mode"}
+              </MenuItem>
+              <MenuItem
                 onClick={handleLogout}
                 sx={{
                   color: "#c43c48 !important",
-                  "&:hover": { bgcolor: "#fff1f2 !important" },
+                  "&:hover": { bgcolor: "var(--danger-soft) !important" },
                 }}
               >
                 <ListItemIcon sx={{ color: "#c43c48 !important" }}>

@@ -1,3 +1,100 @@
 body {
   margin: 0;
 }
+
+:root {
+  --app-bg: #f0f2f5;
+  --nav-bg: rgb(255 255 255 / 94%);
+  --surface: #ffffff;
+  --surface-subtle: #f8fafc;
+  --surface-hover: #f1f6fd;
+  --surface-muted: #edf1f6;
+  --text-primary: #172033;
+  --text-secondary: #526783;
+  --text-muted: #71809a;
+  --border: #e1e8f1;
+  --border-strong: #cbd8e8;
+  --accent-soft: #eaf3ff;
+  --accent-strong: #1976ed;
+  --accent-border: #d5e5ff;
+  --accent-disabled: #d7e6f9;
+  --danger-soft: #fff1f2;
+  --danger-border: #f0dada;
+  --danger-text: #c43c48;
+  --success-text: #00805a;
+  --media-bg: #e9eef5;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --app-bg: #111722;
+  --nav-bg: rgb(27 36 50 / 94%);
+  --surface: #1b2432;
+  --surface-subtle: #202b3a;
+  --surface-hover: #26364c;
+  --surface-muted: #17202d;
+  --text-primary: #e8eef7;
+  --text-secondary: #b3c0d2;
+  --text-muted: #94a3b8;
+  --border: #354256;
+  --border-strong: #45546a;
+  --accent-soft: #203650;
+  --accent-strong: #a8caff;
+  --accent-border: #31577f;
+  --accent-disabled: #2a3f5b;
+  --danger-soft: #3b232a;
+  --danger-border: #69353d;
+  --danger-text: #ff9aa5;
+  --success-text: #5cdaa8;
+  --media-bg: #0f1220;
+  background: #111722;
+}
+
+html[data-theme="dark"] body {
+  color: #e8eef7;
+  background: #111722;
+}
+
+html[data-theme="dark"] main > .MuiBox-root {
+  background-color: var(--app-bg) !important;
+}
+
+html[data-theme="dark"] .MuiMenuItem-root:hover,
+html[data-theme="dark"] .MuiMenuItem-root.Mui-selected {
+  background-color: var(--surface-hover) !important;
+}
+
+html[data-theme="dark"] main a,
+html[data-theme="dark"] main a .MuiTypography-root {
+  color: #8bbcff !important;
+}
+
+html[data-theme="dark"] .MuiOutlinedInput-root,
+html[data-theme="dark"] .MuiInputBase-root {
+  color: #e8eef7 !important;
+  background-color: #141c28 !important;
+}
+
+html[data-theme="dark"] .MuiOutlinedInput-notchedOutline {
+  border-color: #45546a !important;
+}
+
+html[data-theme="dark"] .MuiInputBase-input::placeholder {
+  color: #9aa9bd !important;
+  opacity: 1;
+}
+
+html[data-theme="dark"] footer {
+  color: #e8eef7;
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+html[data-theme="dark"] ::selection {
+  color: #fff;
+  background: #315f9f;
+}
+
+html[data-theme="dark"] * {
+  scrollbar-color: #52627a #17202d;
+}

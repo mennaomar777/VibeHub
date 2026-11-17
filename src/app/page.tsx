@@ -27,15 +27,31 @@ const fieldSx = {
   "& .MuiOutlinedInput-root": {
     minHeight: 50,
     borderRadius: "14px",
-    bgcolor: "#f7f9fc",
+    bgcolor: "var(--surface-subtle)",
+    color: "var(--text-primary)",
     "& .MuiOutlinedInput-input": {
-      color: "#17263d",
-      "&::placeholder": { color: "#8291a8", opacity: 1 },
+      color: "var(--text-primary)",
+      "&::placeholder": {
+        color: "var(--text-muted)",
+        opacity: 1,
+      },
     },
-    "& .MuiSvgIcon-root": { color: "#91a4bf" },
-    "& fieldset": { borderColor: "#dbe4f0" },
-    "&:hover fieldset": { borderColor: "#b8c9e3" },
-    "&.Mui-focused fieldset": { borderColor: "#0b318f" },
+    "& .MuiSvgIcon-root": {
+      color: "var(--text-muted)",
+    },
+    "& fieldset": {
+      borderColor: "var(--border)",
+    },
+    "&:hover fieldset": {
+      borderColor: "var(--border-strong)",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "var(--accent-strong)",
+    },
+  },
+  "& .MuiFormHelperText-root": {
+    color: "var(--danger-text)",
+    mx: 0.5,
   },
 };
 
@@ -45,9 +61,7 @@ export default function Login() {
   const router = useRouter();
 
   const validationSchema = Yup.object().shape({
-    login: Yup.string()
-      .trim()
-      .required("Email or username is required"),
+    login: Yup.string().trim().required("Email or username is required"),
     password: Yup.string().required("Password is required"),
   });
 
@@ -74,6 +88,7 @@ export default function Login() {
               : error instanceof Error
                 ? error.message
                 : "Incorrect email or password";
+
           toast.error(message);
         });
     },
@@ -83,7 +98,7 @@ export default function Login() {
     <Box
       sx={{
         minHeight: "calc(100vh - 72px)",
-        bgcolor: "#f0f2f5",
+        bgcolor: "var(--app-bg)",
         display: "grid",
         gridTemplateColumns: {
           xs: "1fr",
@@ -99,7 +114,7 @@ export default function Login() {
         <Typography
           component="h1"
           sx={{
-            color: "#0b318f",
+            color: "var(--accent-strong)",
             fontSize: { xs: 42, sm: 54, md: 64 },
             fontWeight: 800,
             letterSpacing: "-0.055em",
@@ -108,9 +123,10 @@ export default function Login() {
         >
           vibeHub
         </Typography>
+
         <Typography
           sx={{
-            color: "#17263d",
+            color: "var(--text-primary)",
             fontSize: { xs: 18, sm: 20, md: 23 },
             lineHeight: 1.5,
             mt: 2,
@@ -125,14 +141,14 @@ export default function Login() {
             mt: 4,
             p: { xs: 2.5, sm: 3.5 },
             borderRadius: "24px",
-            border: "1px solid #c8d6ff",
-            bgcolor: "#fff",
-            boxShadow: "0 2px 5px #0b318f1a",
+            border: "1px solid var(--border)",
+            bgcolor: "var(--surface)",
+            boxShadow: "0 2px 5px rgb(11 49 143 / 8%)",
           }}
         >
           <Typography
             sx={{
-              color: "#0b318f",
+              color: "var(--accent-strong)",
               fontSize: 13,
               fontWeight: 800,
               letterSpacing: ".12em",
@@ -140,17 +156,30 @@ export default function Login() {
           >
             A PLACE FOR YOUR PEOPLE
           </Typography>
+
           <Typography
-            sx={{ color: "#182237", fontSize: 21, fontWeight: 750, mt: 1 }}
+            sx={{
+              color: "var(--text-primary)",
+              fontSize: 21,
+              fontWeight: 750,
+              mt: 1,
+            }}
           >
             Your world, all in one place
           </Typography>
+
           <Typography
-            sx={{ color: "#40516c", fontSize: 15, lineHeight: 1.65, mt: 1.5 }}
+            sx={{
+              color: "var(--text-secondary)",
+              fontSize: 15,
+              lineHeight: 1.65,
+              mt: 1.5,
+            }}
           >
             Share everyday moments, join conversations, and stay close to the
             people and interests that make your world yours.
           </Typography>
+
           <Box
             sx={{
               display: "grid",
@@ -173,14 +202,14 @@ export default function Login() {
                 key={label}
                 sx={{
                   p: 1.8,
-                  border: "1px solid #c8d6ff",
+                  border: "1px solid var(--border)",
                   borderRadius: "18px",
-                  bgcolor: "#f2f5ff",
+                  bgcolor: "var(--surface-subtle)",
                 }}
               >
                 <Typography
                   sx={{
-                    color: "#0b318f",
+                    color: "var(--accent-strong)",
                     fontSize: 17,
                     lineHeight: 1.2,
                     fontWeight: 800,
@@ -188,9 +217,10 @@ export default function Login() {
                 >
                   {value}
                 </Typography>
+
                 <Typography
                   sx={{
-                    color: "#4b5c77",
+                    color: "var(--text-secondary)",
                     fontSize: 10,
                     fontWeight: 800,
                     mt: 0.7,
@@ -212,7 +242,8 @@ export default function Login() {
           justifySelf: "center",
           p: { xs: 2.5, sm: 4.5 },
           borderRadius: "24px",
-          bgcolor: "#fff",
+          bgcolor: "var(--surface)",
+          border: "1px solid var(--border)",
         }}
       >
         <Box
@@ -222,7 +253,7 @@ export default function Login() {
             p: 0.6,
             mb: 3.5,
             borderRadius: "18px",
-            bgcolor: "#f0f4f9",
+            bgcolor: "var(--surface-subtle)",
           }}
         >
           <Button
@@ -230,26 +261,32 @@ export default function Login() {
             variant="contained"
             sx={{
               py: 1.2,
-              color: "#082b83",
-              bgcolor: "#fff",
+              color: "var(--accent-strong)",
+              bgcolor: "var(--surface)",
               fontWeight: 800,
               textTransform: "none",
               borderRadius: "14px",
-              boxShadow: "0 2px 5px #18223720",
-              "&:hover": { bgcolor: "#fff" },
+              boxShadow: "0 2px 5px rgb(24 34 55 / 12%)",
+              "&:hover": {
+                bgcolor: "var(--surface)",
+              },
             }}
           >
             Login
           </Button>
+
           <Button
             component={Link}
             href="/register"
             sx={{
               py: 1.2,
-              color: "#40516c",
+              color: "var(--text-secondary)",
               fontWeight: 700,
               textTransform: "none",
               borderRadius: "14px",
+              "&:hover": {
+                bgcolor: "var(--surface-hover)",
+              },
             }}
           >
             Register
@@ -259,7 +296,7 @@ export default function Login() {
         <Typography
           component="h2"
           sx={{
-            color: "#101828",
+            color: "var(--text-primary)",
             fontSize: 26,
             fontWeight: 800,
             letterSpacing: "-.03em",
@@ -267,7 +304,14 @@ export default function Login() {
         >
           Welcome back
         </Typography>
-        <Typography sx={{ color: "#71809a", fontSize: 15, mb: 3 }}>
+
+        <Typography
+          sx={{
+            color: "var(--text-muted)",
+            fontSize: 15,
+            mb: 3,
+          }}
+        >
           Log in to your vibeHub account.
         </Typography>
 
@@ -295,6 +339,7 @@ export default function Login() {
               },
             }}
           />
+
           <TextField
             fullWidth
             id="password"
@@ -328,12 +373,24 @@ export default function Login() {
               mt: 0.6,
               minHeight: 52,
               borderRadius: "14px",
-              bgcolor: "#0b318f",
+              bgcolor: "var(--accent-strong)",
+              color: "#ffffff",
               fontSize: 16,
               fontWeight: 800,
               textTransform: "none",
               boxShadow: "none",
-              "&:hover": { bgcolor: "#082875", boxShadow: "none" },
+              "&:hover": {
+                bgcolor: "var(--accent-strong)",
+                filter: "brightness(0.92)",
+                boxShadow: "none",
+              },
+              "html[data-theme='dark'] &": {
+                color: "#172033",
+              },
+              "&.Mui-disabled": {
+                bgcolor: "var(--accent-disabled)",
+                color: "var(--text-muted)",
+              },
             }}
           >
             {isLoading ? (
@@ -347,7 +404,3 @@ export default function Login() {
     </Box>
   );
 }
-
-
-
-

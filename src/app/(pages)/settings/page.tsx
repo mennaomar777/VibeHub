@@ -82,6 +82,7 @@ export default function SettingsPage() {
       autoComplete: "new-password",
     },
   ];
+
   const hasEmptyField = Object.values(formik.values).some(
     (value) => !value.trim(),
   );
@@ -95,7 +96,7 @@ export default function SettingsPage() {
         },
         display: "flex",
         alignItems: "center",
-        bgcolor: "#f0f2f5",
+        bgcolor: "var(--app-bg)",
         py: { xs: 1, sm: 3, md: 5 },
       }}
     >
@@ -116,8 +117,9 @@ export default function SettingsPage() {
             boxSizing: "border-box",
             px: { xs: 1.5, sm: 3, md: 3.5 },
             py: { xs: 1.5, sm: 2.75, md: 3 },
-            border: "1px solid #dce4ee",
+            border: "1px solid var(--border)",
             borderRadius: { xs: "17px", sm: "24px" },
+            bgcolor: "var(--surface)",
             boxShadow: "0 2px 5px rgb(24 34 55 / 0.12)",
           }}
         >
@@ -138,17 +140,18 @@ export default function SettingsPage() {
                 display: "grid",
                 placeItems: "center",
                 borderRadius: "50%",
-                bgcolor: "#e7f2ff",
-                color: "#0878ff",
+                bgcolor: "var(--accent-soft)",
+                color: "var(--accent-strong)",
               }}
             >
               <KeyOutlinedIcon sx={{ fontSize: 23 }} />
             </Box>
+
             <Box sx={{ minWidth: 0 }}>
               <Typography
                 component="h1"
                 sx={{
-                  color: "#111827",
+                  color: "var(--text-primary)",
                   fontSize: { xs: 20, sm: 27 },
                   fontWeight: 800,
                   lineHeight: 1.2,
@@ -157,14 +160,28 @@ export default function SettingsPage() {
               >
                 Change Password
               </Typography>
-              <Typography sx={{ mt: 0.35, color: "#64748b", fontSize: { xs: 12.5, sm: 14 }, lineHeight: 1.5, overflowWrap: "anywhere" }}>
+
+              <Typography
+                sx={{
+                  mt: 0.35,
+                  color: "var(--text-secondary)",
+                  fontSize: { xs: 12.5, sm: 14 },
+                  lineHeight: 1.5,
+                  overflowWrap: "anywhere",
+                }}
+              >
                 Keep your account secure by using a strong password.
               </Typography>
             </Box>
           </Box>
 
-          <Box component="form" onSubmit={formik.handleSubmit} noValidate sx={{ minWidth: 0 }}>
-            {fields.map((field, index) => {
+          <Box
+            component="form"
+            onSubmit={formik.handleSubmit}
+            noValidate
+            sx={{ minWidth: 0 }}
+          >
+            {fields.map((field) => {
               const touched = formik.touched[field.name];
               const error = formik.errors[field.name];
 
@@ -176,13 +193,14 @@ export default function SettingsPage() {
                     sx={{
                       display: "block",
                       mb: 0.45,
-                      color: "#26354b",
+                      color: "var(--text-primary)",
                       fontSize: 14,
                       fontWeight: 750,
                     }}
                   >
                     {field.label}
                   </Typography>
+
                   <TextField
                     fullWidth
                     id={field.name}
@@ -200,25 +218,45 @@ export default function SettingsPage() {
                       "& .MuiOutlinedInput-root": {
                         minHeight: { xs: 42, sm: 46 },
                         borderRadius: "13px",
-                        bgcolor: "#f8fafc",
-                        color: "#26354b",
-                        "& fieldset": { borderColor: "#dce4ee" },
-                        "&:hover fieldset": { borderColor: "#b9c9dc" },
-                        "&.Mui-focused fieldset": { borderColor: "#70aafa" },
+                        bgcolor: "var(--surface-subtle)",
+                        color: "var(--text-primary)",
+                        "& fieldset": {
+                          borderColor: "var(--border)",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "var(--border-strong)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "var(--accent-strong)",
+                        },
                       },
-                      "& .MuiInputBase-input": { px: 1.75, py: 1 },
+                      "& .MuiInputBase-input": {
+                        px: 1.75,
+                        py: 1,
+                      },
                       "& .MuiInputBase-input::placeholder": {
-                        color: "#8291a7",
+                        color: "var(--text-muted)",
                         opacity: 1,
                       },
-                      "& .MuiFormHelperText-root": { mx: 0, mt: 0.35, minHeight: 0, lineHeight: 1.25 },
+                      "& .MuiFormHelperText-root": {
+                        mx: 0,
+                        mt: 0.35,
+                        minHeight: 0,
+                        lineHeight: 1.25,
+                      },
                     }}
                   />
-                  {field.name === "newPassword" && !(
-                    touched && error
-                  ) && (
-                    <Typography sx={{ mt: 0.25, color: "#64748b", fontSize: 12 }}>
-                      At least 8 characters with uppercase, lowercase, number, and special character.
+
+                  {field.name === "newPassword" && !(touched && error) && (
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+                        color: "var(--text-secondary)",
+                        fontSize: 12,
+                      }}
+                    >
+                      At least 8 characters with uppercase, lowercase, number,
+                      and special character.
                     </Typography>
                   )}
                 </Box>
@@ -233,14 +271,28 @@ export default function SettingsPage() {
               sx={{
                 minHeight: { xs: 44, sm: 48 },
                 borderRadius: "13px",
-                bgcolor: "#70aafa",
+                bgcolor: "var(--accent-strong)",
                 color: "#fff",
                 fontSize: { xs: 14, sm: 16 },
                 fontWeight: 750,
                 textTransform: "none",
                 boxShadow: "none",
-                "&:hover": { bgcolor: "#4d91ee", boxShadow: "none" },
-                "&.Mui-disabled": { bgcolor: "#a9cafa", color: "#fff" },
+                "&:hover": {
+                  bgcolor: "var(--accent-strong)",
+                  filter: "brightness(0.92)",
+                  boxShadow: "none",
+                },
+                "&.Mui-disabled": {
+                  bgcolor: "var(--accent-disabled)",
+                  color: "var(--text-muted)",
+                },
+                "html[data-theme='dark'] &": {
+                  color: "#172033",
+                  "&:hover": {
+                    bgcolor: "var(--accent-strong)",
+                    filter: "brightness(1.08)",
+                  },
+                },
               }}
             >
               {isLoading || formik.isSubmitting ? (

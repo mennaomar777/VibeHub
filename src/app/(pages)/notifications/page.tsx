@@ -113,8 +113,8 @@ export default function NotificationsPage() {
     >
       <Box
         sx={{
-          bgcolor: "#fff",
-          border: "1px solid #e1e8f0",
+          bgcolor: "var(--surface)",
+          border: "1px solid var(--border)",
           borderRadius: "16px",
           boxShadow: "0 2px 5px rgb(15 23 42 / 0.08)",
           overflow: "hidden",
@@ -141,8 +141,8 @@ export default function NotificationsPage() {
                   display: "grid",
                   placeItems: "center",
                   borderRadius: "14px",
-                  bgcolor: "#edf4ff",
-                  color: "#1976ed",
+                  bgcolor: "var(--accent-soft)",
+                  color: "var(--accent-strong)",
                 }}
               >
                 <NotificationsNoneRounded />
@@ -152,7 +152,7 @@ export default function NotificationsPage() {
                   variant="h6"
                   sx={{
                     fontWeight: 800,
-                    color: "#172033",
+                    color: "var(--text-primary)",
                     letterSpacing: "-0.02em",
                   }}
                 >
@@ -161,7 +161,7 @@ export default function NotificationsPage() {
 
                 <Typography
                   sx={{
-                    color: "#64748b",
+                    color: "var(--text-secondary)",
                     mt: 0.25,
                     fontSize: 13.5,
                   }}
@@ -187,8 +187,8 @@ export default function NotificationsPage() {
                   markAllNotificationsLoading || notifications.length === 0
                 }
                 sx={{
-                  borderColor: "#e1e8f0",
-                  color: "#34445c",
+                  borderColor: "var(--border)",
+                  color: "var(--text-secondary)",
                   borderRadius: "10px",
                   px: 1.7,
                   py: 0.8,
@@ -199,9 +199,9 @@ export default function NotificationsPage() {
                   transition:
                     "background-color 150ms ease, border-color 150ms ease, color 150ms ease",
                   "&:hover": {
-                    bgcolor: "#f5f9ff",
-                    borderColor: "#bfd7fb",
-                    color: "#1976ed",
+                    bgcolor: "var(--surface-subtle)",
+                    borderColor: "var(--accent-border)",
+                    color: "var(--accent-strong)",
                   },
                 }}
               >
@@ -213,7 +213,7 @@ export default function NotificationsPage() {
                 <Typography
                   role="alert"
                   sx={{
-                    color: "#b42318",
+                    color: "var(--danger-text)",
                     fontSize: 12,
                     textAlign: { xs: "left", sm: "right" },
                   }}
@@ -235,20 +235,33 @@ export default function NotificationsPage() {
                 px: 2.2,
                 minWidth: 58,
                 minHeight: 36,
-                bgcolor: activeFilter === "all" ? "#1976ed" : "#f1f5f9",
-                color: activeFilter === "all" ? "#fff" : "#34445c",
+                bgcolor:
+                  activeFilter === "all"
+                    ? "var(--accent-strong)"
+                    : "var(--surface-subtle)",
+                color:
+                  activeFilter === "all" ? "#ffffff" : "var(--text-secondary)",
                 fontSize: 13,
                 fontWeight: 700,
                 textTransform: "none",
                 boxShadow: "none",
                 transition: "background-color 150ms ease, color 150ms ease",
                 "&:focus-visible": {
-                  outline: "3px solid #bfdbfe",
+                  outline: "3px solid var(--accent-border)",
                   outlineOffset: 2,
                 },
                 "&:hover": {
-                  bgcolor: activeFilter === "all" ? "#1769d8" : "#e8eef5",
+                  bgcolor:
+                    activeFilter === "all"
+                      ? "var(--accent-strong)"
+                      : "var(--accent-soft)",
                   boxShadow: "none",
+                },
+                "html[data-theme='dark'] &": {
+                  color:
+                    activeFilter === "all"
+                      ? "#172033"
+                      : "var(--text-secondary)",
                 },
               }}
             >
@@ -263,8 +276,14 @@ export default function NotificationsPage() {
                 borderRadius: "30px",
                 px: 2,
                 minHeight: 36,
-                bgcolor: activeFilter === "unread" ? "#1976ed" : "#f1f5f9",
-                color: activeFilter === "unread" ? "#fff" : "#34445c",
+                bgcolor:
+                  activeFilter === "unread"
+                    ? "var(--accent-strong)"
+                    : "var(--surface-subtle)",
+                color:
+                  activeFilter === "unread"
+                    ? "#ffffff"
+                    : "var(--text-secondary)",
                 fontSize: 13,
                 fontWeight: 700,
                 textTransform: "none",
@@ -272,20 +291,29 @@ export default function NotificationsPage() {
                 boxShadow: "none",
                 transition: "background-color 150ms ease, color 150ms ease",
                 "&:focus-visible": {
-                  outline: "3px solid #bfdbfe",
+                  outline: "3px solid var(--accent-border)",
                   outlineOffset: 2,
                 },
                 "&:hover": {
-                  bgcolor: activeFilter === "unread" ? "#1769d8" : "#e8eef5",
+                  bgcolor:
+                    activeFilter === "unread"
+                      ? "var(--accent-strong)"
+                      : "var(--accent-soft)",
                   boxShadow: "none",
+                },
+                "html[data-theme='dark'] &": {
+                  color:
+                    activeFilter === "unread"
+                      ? "#172033"
+                      : "var(--text-secondary)",
                 },
               }}
             >
               Unread
               <Box
                 sx={{
-                  bgcolor: "#fff",
-                  color: "#1976ed",
+                  bgcolor: "var(--surface)",
+                  color: "var(--accent-strong)",
                   borderRadius: "50%",
                   width: 22,
                   height: 22,
@@ -301,7 +329,7 @@ export default function NotificationsPage() {
           </Box>
         </Box>
 
-        <Divider sx={{ borderColor: "#e3eaf2" }} />
+        <Divider sx={{ borderColor: "var(--border)" }} />
 
         {/* Notifications List */}
         <Box
@@ -325,9 +353,9 @@ export default function NotificationsPage() {
                   py: { xs: 0.8, md: 1 },
                   minHeight: 82,
                   borderRadius: "17px",
-                  border: "1px solid #e1e8f0",
+                  border: "1px solid var(--border)",
                   borderRight: "none",
-                  bgcolor: "#fff",
+                  bgcolor: "var(--surface)",
                 }}
               >
                 <Box sx={{ position: "relative", flexShrink: 0 }}>
@@ -336,6 +364,7 @@ export default function NotificationsPage() {
                     animation="wave"
                     width={42}
                     height={42}
+                    sx={{ bgcolor: "var(--surface-muted)" }}
                   />
 
                   <Skeleton
@@ -347,8 +376,8 @@ export default function NotificationsPage() {
                       position: "absolute",
                       right: -4,
                       bottom: -4,
-                      bgcolor: "#e8eef5",
-                      border: "2px solid #fff",
+                      bgcolor: "var(--accent-soft)",
+                      border: "2px solid var(--surface)",
                     }}
                   />
                 </Box>
@@ -367,6 +396,7 @@ export default function NotificationsPage() {
                       variant="text"
                       width="58%"
                       height={23}
+                      sx={{ bgcolor: "var(--surface-muted)" }}
                     />
 
                     <Skeleton
@@ -374,7 +404,10 @@ export default function NotificationsPage() {
                       variant="text"
                       width={68}
                       height={19}
-                      sx={{ flexShrink: 0 }}
+                      sx={{
+                        flexShrink: 0,
+                        bgcolor: "var(--surface-muted)",
+                      }}
                     />
                   </Box>
 
@@ -383,7 +416,10 @@ export default function NotificationsPage() {
                     variant="text"
                     width="76%"
                     height={20}
-                    sx={{ mt: 0.2 }}
+                    sx={{
+                      mt: 0.2,
+                      bgcolor: "var(--surface-muted)",
+                    }}
                   />
 
                   <Skeleton
@@ -391,7 +427,11 @@ export default function NotificationsPage() {
                     variant="rounded"
                     width={100}
                     height={28}
-                    sx={{ mt: 0.75, borderRadius: "8px" }}
+                    sx={{
+                      mt: 0.75,
+                      borderRadius: "8px",
+                      bgcolor: "var(--surface-muted)",
+                    }}
                   />
                 </Box>
 
@@ -400,7 +440,11 @@ export default function NotificationsPage() {
                   animation="wave"
                   width={6}
                   height={6}
-                  sx={{ mt: 1.2, flexShrink: 0 }}
+                  sx={{
+                    mt: 1.2,
+                    flexShrink: 0,
+                    bgcolor: "var(--surface-muted)",
+                  }}
                 />
               </Box>
             ))
@@ -417,8 +461,8 @@ export default function NotificationsPage() {
                 p: { xs: 3, md: 4 },
                 minHeight: 220,
                 borderRadius: "17px",
-                border: "1px solid #e1e8f0",
-                bgcolor: "#fff",
+                border: "1px solid var(--border)",
+                bgcolor: "var(--surface)",
               }}
             >
               <Box
@@ -428,21 +472,29 @@ export default function NotificationsPage() {
                   display: "grid",
                   placeItems: "center",
                   borderRadius: "50%",
-                  bgcolor: "#fff1f2",
-                  color: "#e11d48",
+                  bgcolor: "var(--danger-soft)",
+                  color: "var(--danger-text)",
                 }}
               >
                 <ErrorOutlineRounded />
               </Box>
 
               <Typography
-                sx={{ color: "#172033", fontSize: 16, fontWeight: 800 }}
+                sx={{
+                  color: "var(--text-primary)",
+                  fontSize: 16,
+                  fontWeight: 800,
+                }}
               >
                 Notifications couldn’t load
               </Typography>
 
               <Typography
-                sx={{ color: "#64748b", fontSize: 14, maxWidth: 420 }}
+                sx={{
+                  color: "var(--text-secondary)",
+                  fontSize: 14,
+                  maxWidth: 420,
+                }}
               >
                 {error || "Something went wrong while loading notifications."}
               </Typography>
@@ -461,15 +513,15 @@ export default function NotificationsPage() {
                 }
                 sx={{
                   mt: 0.5,
-                  borderColor: "#d5e5ff",
-                  color: "#1976ed",
+                  borderColor: "var(--accent-border)",
+                  color: "var(--accent-strong)",
                   borderRadius: "10px",
                   fontWeight: 700,
                   textTransform: "none",
                   px: 2,
                   "&:hover": {
-                    bgcolor: "#f5f9ff",
-                    borderColor: "#1976ed",
+                    bgcolor: "var(--surface-subtle)",
+                    borderColor: "var(--accent-border)",
                   },
                 }}
               >
@@ -488,8 +540,8 @@ export default function NotificationsPage() {
                 p: { xs: 3, md: 4 },
                 minHeight: 220,
                 borderRadius: "17px",
-                border: "1px solid #e1e8f0",
-                bgcolor: "#fff",
+                border: "1px solid var(--border)",
+                bgcolor: "var(--surface)",
               }}
             >
               <Box
@@ -499,21 +551,29 @@ export default function NotificationsPage() {
                   display: "grid",
                   placeItems: "center",
                   borderRadius: "50%",
-                  bgcolor: "#edf4ff",
-                  color: "#1976ed",
+                  bgcolor: "var(--accent-soft)",
+                  color: "var(--accent-strong)",
                 }}
               >
                 <NotificationsNoneRounded sx={{ fontSize: 28 }} />
               </Box>
 
               <Typography
-                sx={{ color: "#172033", fontSize: 16, fontWeight: 800 }}
+                sx={{
+                  color: "var(--text-primary)",
+                  fontSize: 16,
+                  fontWeight: 800,
+                }}
               >
                 No notifications yet
               </Typography>
 
               <Typography
-                sx={{ color: "#64748b", fontSize: 14, maxWidth: 420 }}
+                sx={{
+                  color: "var(--text-secondary)",
+                  fontSize: 14,
+                  maxWidth: 420,
+                }}
               >
                 You&apos;re all caught up! We&apos;ll let you know when
                 something happens.
@@ -571,9 +631,15 @@ export default function NotificationsPage() {
                     minHeight: 82,
                     borderRadius: "17px",
                     border: "1px solid",
-                    borderColor: notification.isRead ? "#e1e8f0" : "#d7e7ff",
-                    bgcolor: notification.isRead ? "#fff" : "#edf4ff",
-                    borderLeft: notification.isRead ? "1px solid #e1e8f0" : "",
+                    borderColor: notification.isRead
+                      ? "var(--border)"
+                      : "var(--accent-border)",
+                    bgcolor: notification.isRead
+                      ? "var(--surface)"
+                      : "var(--accent-soft)",
+                    borderLeft: notification.isRead
+                      ? "1px solid var(--border)"
+                      : "",
                     boxShadow: notification.isRead
                       ? "0 1px 3px rgb(15 23 42 / 0.03)"
                       : "0 2px 8px rgb(25 118 237 / 0.06)",
@@ -582,12 +648,12 @@ export default function NotificationsPage() {
                     cursor: canOpenPost ? "pointer" : "default",
                     "&:focus-visible": canOpenPost
                       ? {
-                          outline: "3px solid #93c5fd",
+                          outline: "3px solid var(--accent-border)",
                           outlineOffset: 2,
                         }
                       : undefined,
                     "&:hover": {
-                      borderColor: notification.isRead ? "#cbd5e1" : "#b7d4ff",
+                      borderColor: "var(--accent-border)",
                       boxShadow: "0 6px 16px rgb(15 23 42 / 0.07)",
                       transform: "translateY(-1px)",
                     },
@@ -612,7 +678,7 @@ export default function NotificationsPage() {
                         transition: "transform 150ms ease",
                         "&:hover": { transform: "scale(1.04)" },
                         "&:focus-visible": {
-                          outline: "3px solid #93c5fd",
+                          outline: "3px solid var(--accent-border)",
                           outlineOffset: 2,
                         },
                       }}
@@ -622,7 +688,8 @@ export default function NotificationsPage() {
                         sx={{
                           width: 42,
                           height: 42,
-                          bgcolor: "#dce7fb",
+                          bgcolor: "var(--accent-soft)",
+                          color: "var(--text-primary)",
                           fontSize: 15,
                         }}
                       >
@@ -638,14 +705,14 @@ export default function NotificationsPage() {
                         width: 22,
                         height: 22,
                         borderRadius: "50%",
-                        bgcolor: "#fff",
+                        bgcolor: "var(--surface)",
                         display: "grid",
                         placeItems: "center",
                         color: isFollowNotification
                           ? "#9333ea"
                           : notificationType === "like_post"
                             ? "#f43f5e"
-                            : "#1976ed",
+                            : "var(--accent-strong)",
                       }}
                     >
                       {isFollowNotification ? (
@@ -675,7 +742,7 @@ export default function NotificationsPage() {
                     >
                       <Typography
                         sx={{
-                          color: "#172033",
+                          color: "var(--text-primary)",
                           fontSize: 14,
                           lineHeight: 1.6,
                         }}
@@ -720,14 +787,14 @@ export default function NotificationsPage() {
                       >
                         <Typography
                           sx={{
-                            color: "#64748b",
+                            color: "var(--text-secondary)",
                             fontSize: 12,
                             lineHeight: 1,
                             whiteSpace: "nowrap",
                             px: 0.8,
                             py: 0.45,
                             borderRadius: "999px",
-                            bgcolor: "#f1f5f9",
+                            bgcolor: "var(--surface-subtle)",
                             fontWeight: 700,
                           }}
                         >
@@ -741,8 +808,8 @@ export default function NotificationsPage() {
                               height: 6,
                               flexShrink: 0,
                               borderRadius: "50%",
-                              bgcolor: "#1976ed",
-                              boxShadow: "0 0 0 3px #dbeafe",
+                              bgcolor: "var(--accent-strong)",
+                              boxShadow: "0 0 0 3px var(--accent-border)",
                             }}
                           />
                         )}
@@ -753,7 +820,7 @@ export default function NotificationsPage() {
                       notification.entity.body && (
                         <Typography
                           sx={{
-                            color: "#64748b",
+                            color: "var(--text-secondary)",
                             mt: 0.4,
                             fontSize: 13,
                           }}
@@ -769,7 +836,7 @@ export default function NotificationsPage() {
                             display: "inline-flex",
                             alignItems: "center",
                             gap: 0.4,
-                            color: "#059669",
+                            color: "var(--success-text)",
                             fontSize: 12.5,
                           }}
                         >
@@ -791,9 +858,9 @@ export default function NotificationsPage() {
                           }}
                           disabled={isMarkingThisNotification}
                           sx={{
-                            borderColor: "#d5e5ff",
-                            bgcolor: "#fff",
-                            color: "#1976ed",
+                            borderColor: "var(--accent-border)",
+                            bgcolor: "var(--surface)",
+                            color: "var(--accent-strong)",
                             borderRadius: "8px",
                             fontSize: 12,
                             fontWeight: 700,
@@ -801,8 +868,8 @@ export default function NotificationsPage() {
                             px: 1,
                             py: 0.35,
                             "&:hover": {
-                              bgcolor: "#f5f9ff",
-                              borderColor: "#1976ed",
+                              bgcolor: "var(--surface-subtle)",
+                              borderColor: "var(--accent-border)",
                             },
                           }}
                         >
@@ -814,7 +881,11 @@ export default function NotificationsPage() {
                       {markNotificationError && (
                         <Typography
                           role="alert"
-                          sx={{ color: "#b42318", mt: 0.6, fontSize: 12 }}
+                          sx={{
+                            color: "var(--danger-text)",
+                            mt: 0.6,
+                            fontSize: 12,
+                          }}
                         >
                           {markNotificationError}
                         </Typography>
@@ -838,7 +909,11 @@ export default function NotificationsPage() {
               {loadMoreError && (
                 <Typography
                   role="alert"
-                  sx={{ color: "#b42318", fontSize: 13, textAlign: "center" }}
+                  sx={{
+                    color: "var(--danger-text)",
+                    fontSize: 13,
+                    textAlign: "center",
+                  }}
                 >
                   {loadMoreError}
                 </Typography>
@@ -852,14 +927,14 @@ export default function NotificationsPage() {
                 }
                 sx={{
                   minWidth: 140,
-                  borderColor: "#d5e5ff",
-                  color: "#1976ed",
+                  borderColor: "var(--accent-border)",
+                  color: "var(--accent-strong)",
                   borderRadius: "10px",
                   fontWeight: 700,
                   textTransform: "none",
                   "&:hover": {
-                    bgcolor: "#f5f9ff",
-                    borderColor: "#1976ed",
+                    bgcolor: "var(--surface-subtle)",
+                    borderColor: "var(--accent-border)",
                   },
                 }}
               >

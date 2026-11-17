@@ -91,9 +91,16 @@ export const getCommentReplies = createAsyncThunk(
   },
 );
 
+type ToggleCommentLikeArgs = {
+  postId: string;
+  commentId: string;
+  currentlyLiked: boolean;
+  likesCount: number;
+};
+
 export const toggleCommentLike = createAsyncThunk(
   "comments/toggleLike",
-  async ({ postId, commentId }: { postId: string; commentId: string }) => {
+  async ({ postId, commentId }: ToggleCommentLikeArgs) => {
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : "";
 
@@ -122,6 +129,12 @@ export const toggleCommentLike = createAsyncThunk(
 
       throw error;
     }
+  },
+  {
+    condition: ({ commentId }, { getState }) =>
+      !(getState() as { comments: { commentLikingIds: string[] } }).comments.commentLikingIds.includes(
+        commentId,
+      ),
   },
 );
 
@@ -264,6 +277,10 @@ const initialState: {
   repliesHasMoreByCommentId: Record<string, boolean>;
   repliesLoadedByCommentId: Record<string, boolean>;
   commentLikingIds: string[];
+  commentLikeOverrides: Record<
+    string,
+    { isLiked: boolean; likesCount: number; requestId?: string }
+  >;
   isLoading: boolean;
   isError: boolean;
   error: string | null;
@@ -281,6 +298,7 @@ const initialState: {
   repliesHasMoreByCommentId: {},
   repliesLoadedByCommentId: {},
   commentLikingIds: [],
+  commentLikeOverrides: {},
   isLoading: false,
   isError: false,
   error: null,
@@ -363,14 +381,38 @@ const commentsSlice = createSlice({
         action.error.message || "Could not load replies";
     });
     builder.addCase(toggleCommentLike.pending, (state, action) => {
-      if (!state.commentLikingIds.includes(action.meta.arg.commentId)) {
-        state.commentLikingIds.push(action.meta.arg.commentId);
+      const { commentId, currentlyLiked, likesCount } = action.meta.arg;
+      if (!state.commentLikingIds.includes(commentId)) {
+        state.commentLikingIds.push(commentId);
+      }
+      const previous = state.commentLikeOverrides[commentId];
+      state.commentLikeOverrides[commentId] = {
+        isLiked: !currentlyLiked,
+        likesCount: Math.max(0, likesCount + (currentlyLiked ? -1 : 1)),
+        requestId: action.meta.requestId,
+      };
+      if (previous) {
+        state.commentLikeOverrides[commentId].likesCount = Math.max(
+          0,
+          previous.likesCount + (currentlyLiked ? -1 : 1),
+        );
       }
     });
     builder.addCase(toggleCommentLike.fulfilled, (state, action) => {
-      const { commentId, comment: updatedComment, liked, likesCount } = action.payload;
-      const updated = { ...updatedComment, likesCount, isLiked: liked };
+      const {
+        commentId,
+        comment: updatedComment,
+        liked,
+        likesCount,
+      } = action.payload;
       state.commentLikingIds = state.commentLikingIds.filter((id) => id !== commentId);
+      const currentOverride = state.commentLikeOverrides[commentId];
+      if (currentOverride?.requestId !== action.meta.requestId) return;
+      state.commentLikeOverrides[commentId] = {
+        isLiked: liked,
+        likesCount: Math.max(0, likesCount),
+      };
+      const updated = { ...updatedComment, likesCount, isLiked: liked };
       if (state.allComments) {
         state.allComments = state.allComments.map((comment) =>
           comment._id === commentId ? { ...comment, ...updated } : comment,
@@ -378,13 +420,25 @@ const commentsSlice = createSlice({
       }
       for (const replies of Object.values(state.repliesByCommentId)) {
         const replyIndex = replies.findIndex((reply) => reply._id === commentId);
-        if (replyIndex !== -1) replies[replyIndex] = { ...replies[replyIndex], ...updated };
+        if (replyIndex !== -1) {
+          replies[replyIndex] = { ...replies[replyIndex], ...updated };
+        }
       }
     });
     builder.addCase(toggleCommentLike.rejected, (state, action) => {
       state.commentLikingIds = state.commentLikingIds.filter(
         (id) => id !== action.meta.arg.commentId,
       );
+      const { commentId, currentlyLiked, likesCount } = action.meta.arg;
+      if (
+        state.commentLikeOverrides[commentId]?.requestId !== action.meta.requestId
+      ) {
+        return;
+      }
+      state.commentLikeOverrides[commentId] = {
+        isLiked: currentlyLiked,
+        likesCount: Math.max(0, likesCount),
+      };
     });
     builder.addCase(createCommentReply.fulfilled, (state, action) => {
       const { commentId, reply } = action.payload;

@@ -36,7 +36,7 @@ export default function ProfilePhoto({}: { onUploadSuccess?: () => void }) {
         boxShadow: 2,
         width: 36,
         height: 36,
-        "&:hover": { bgcolor: "#f5f5f5" },
+        "&:hover": { bgcolor: "var(--surface-hover)" },
       }}
     >
       <CameraAltIcon fontSize="small" />
