@@ -52,11 +52,12 @@ npm start
 npm run lint
 ```
 
-The app sends authenticated API requests with the bearer token saved by the sign-in flow.
+Sign-in and registration save a JWT for authenticated API requests and mirror it to a cookie for page routing. The Next.js proxy redirects guests away from app pages and signed-in users away from the sign-in and registration pages. A client-side route guard checks the session before rendering protected pages.
 
 ## Project structure
 
 ```text
+proxy.ts
 src/
 ├── app/
 │   ├── (pages)/
@@ -73,13 +74,19 @@ src/
 │   │   ├── ProfilePhoto/
 │   │   ├── SideBar/
 │   │   ├── SuggestedFriends/
+│   │   ├── ColorModeProvider.tsx
+│   │   ├── LoadingScreen.tsx
+│   │   ├── RouteGuard.tsx
 │   │   ├── footer/
 │   │   └── navbar/
 │   ├── interfaces/
 │   ├── error.tsx
+│   ├── globals.css
 │   ├── icon.svg
 │   ├── layout.tsx
-│   └── loading.tsx
+│   ├── loading.tsx
+│   ├── not-found.tsx
+│   └── page.module.css
 └── lib/
     ├── authSlice.tsx
     ├── commentsSlice.ts
@@ -92,7 +99,7 @@ src/
 
 ## Authentication and API
 
-The app uses the Route Posts API. Sign-in provides a bearer token, which the client uses for authenticated requests. Protected views rely on the signed-in user session.
+The app uses the Route Posts API at `https://route-posts.routemisr.com`. Sign-in and registration return a JWT, which the client sends as a bearer token for authenticated API requests. The proxy checks the token cookie and its expiration for page redirects; the client route guard also prevents protected page content from rendering without a locally stored token. The home page (`/`) is the sign-in page, and `/register` is the registration page.
 
 ## Author
 

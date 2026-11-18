@@ -13,12 +13,19 @@ export default function RouteGuard({
   const [authorizedPath, setAuthorizedPath] = useState<string | null>(null);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
     if (isAuthPage) {
+      if (token) {
+        setAuthorizedPath(null);
+        router.replace("/feed");
+        return;
+      }
+
       setAuthorizedPath(pathname);
       return;
     }
 
-    const token = localStorage.getItem("token");
     if (!token) {
       setAuthorizedPath(null);
       router.replace("/");
@@ -28,7 +35,7 @@ export default function RouteGuard({
     setAuthorizedPath(pathname);
   }, [isAuthPage, pathname, router]);
 
-  if (isAuthPage || authorizedPath === pathname) return children;
+  if (authorizedPath === pathname) return children;
 
   return <LoadingScreen />;
 }
