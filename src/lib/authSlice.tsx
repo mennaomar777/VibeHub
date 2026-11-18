@@ -58,8 +58,10 @@ const saveToken = (token?: string) => {
 
   if (token) {
     localStorage.setItem("token", token);
+    document.cookie = `token=${encodeURIComponent(token)}; path=/; SameSite=Lax`;
   } else {
     localStorage.removeItem("token");
+    document.cookie = "token=; path=/; max-age=0; SameSite=Lax";
   }
 };
 
@@ -82,7 +84,7 @@ export const handleLogin = createAsyncThunk<
 
 export const logout = createAsyncThunk("auth/logout", async () => {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("token");
+    saveToken();
   }
 });
 

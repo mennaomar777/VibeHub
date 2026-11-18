@@ -8,6 +8,7 @@ import { Provider } from "react-redux";
 import { store } from "@/lib/store";
 import { Toaster } from "react-hot-toast";
 import Footer from "./_components/footer/Footer";
+import RouteGuard from "./_components/RouteGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +35,10 @@ export default function RootLayout({
           <ColorModeProvider>
             <Provider store={store}>
               <Navbar />
-              <main suppressHydrationWarning>{children}</main> <Footer />
+              <main suppressHydrationWarning>
+                <RouteGuard>{children}</RouteGuard>
+              </main>
+              <Footer />
               <Toaster
                 position="top-right"
                 gutter={16}

@@ -36,6 +36,7 @@ export default function Home() {
 
   const dispatch = useDispatch<dispatchType>();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const router = useRouter();
   const { userData } = useSelector((state: stateType) => state.profile);
 
@@ -59,12 +60,13 @@ export default function Home() {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        router.push("/");
+        router.replace("/");
         return;
       }
 
       const decoded = jwtDecode<{ user?: string }>(token);
       setCurrentUserId(decoded.user ?? null);
+      setAuthChecked(true);
 
       if (activeView === "community") {
         dispatch(getAllPosts());
@@ -75,6 +77,14 @@ export default function Home() {
       }
     }
   }, [activeView, dispatch, router]);
+
+  if (!authChecked) {
+    return (
+      <Box
+        sx={{ minHeight: "calc(100vh - 84px)", bgcolor: "var(--app-bg)" }}
+      />
+    );
+  }
 
   function refreshActivePosts() {
     if (activeView === "community") {

@@ -347,6 +347,7 @@ const profileSlice = createSlice({
       if (token) {
         if (typeof window !== "undefined") {
           localStorage.setItem("token", token);
+          document.cookie = `token=${encodeURIComponent(token)}; path=/; SameSite=Lax`;
         }
       }
     });

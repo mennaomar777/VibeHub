@@ -241,6 +241,10 @@ export default function Register() {
   return (
     <Box
       sx={{
+        "--accent-strong": "#082f91",
+        "--accent-soft": "#eef3ff",
+        "--accent-border": "#cbd8ff",
+        "--accent-disabled": "#d7e2ff",
         minHeight: "calc(100vh - 72px)",
         bgcolor: "var(--app-bg)",
         display: "grid",
